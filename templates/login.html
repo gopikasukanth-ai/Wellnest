@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh;display:flex;align-items:center;justify-content:center}
+        .login-container{background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:30px;padding:3rem;width:420px;max-width:90%;border:1px solid rgba(255,255,255,0.15)}
+        .login-container .logo{text-align:center;font-size:2rem;font-weight:800;color:#0b2b26;margin-bottom:.5rem}
+        .login-container .subtitle{text-align:center;color:#0b2b26;font-weight:500;font-size:.9rem;margin-bottom:2rem}
+        .login-container .form-group{margin-bottom:1.2rem}
+        .login-container .form-group label{display:block;font-weight:600;color:#0b2b26;font-size:.9rem;margin-bottom:.3rem}
+        .login-container .form-group input{width:100%;padding:.8rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:#0b2b26;font-size:.95rem;font-family:'Inter',sans-serif}
+        .login-container .form-group input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .login-container .btn-login{width:100%;background:#0b2b26;color:white;border:none;padding:.9rem;border-radius:50px;font-weight:700;font-size:1rem;cursor:pointer;transition:all .3s}
+        .login-container .btn-login:hover{background:#1a4d44;transform:scale(1.02)}
+        .login-container .links{display:flex;justify-content:space-between;margin-top:1.2rem;font-size:.85rem}
+        .login-container .links a{color:#0b2b26;text-decoration:none;font-weight:500;transition:all .3s;cursor:pointer}
+        .login-container .links a:hover{color:#1a7a5a;text-decoration:underline}
+        .login-container .signup-text{text-align:center;margin-top:1.2rem;font-size:.9rem;color:#0b2b26;font-weight:500}
+        .login-container .signup-text a{color:#1a7a5a;text-decoration:none;font-weight:700;cursor:pointer}
+        .login-container .signup-text a:hover{text-decoration:underline}
+        .login-container .back-home{display:block;text-align:center;margin-top:1.2rem;color:#0b2b26;text-decoration:none;font-size:.9rem;font-weight:500;transition:all .3s;cursor:pointer}
+        .login-container .back-home:hover{color:#1a7a5a;text-decoration:underline}
+        .login-container .message{text-align:center;padding:.8rem;border-radius:12px;margin-top:.8rem;font-size:.9rem;font-weight:600;display:none}
+        .login-container .message.error{display:block;background:rgba(231,76,60,0.15);color:#c0392b;border:2px solid rgba(231,76,60,0.3)}
+        .login-container .message.success{display:block;background:rgba(26,122,90,0.15);color:#0b2b26;border:2px solid rgba(26,122,90,0.3)}
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:99999;justify-content:center;align-items:center}
+        .modal-overlay.active{display:flex}
+        .modal-content{background:rgba(255,255,255,0.95);border-radius:30px;padding:2.5rem;width:400px;max-width:90%;position:relative;border:1px solid rgba(255,255,255,0.2)}
+        .modal-content .close-btn{position:absolute;top:15px;right:20px;font-size:1.5rem;color:#0b2b26;cursor:pointer;background:none;border:none;transition:all .3s}
+        .modal-content .close-btn:hover{transform:rotate(90deg)}
+        .modal-content h2{font-size:1.5rem;color:#0b2b26;margin-bottom:.5rem}
+        .modal-content .subtitle{font-size:.85rem;color:#0b2b26;opacity:.6;margin-bottom:1.5rem}
+        .modal-content .form-group{margin-bottom:1rem}
+        .modal-content .form-group label{display:block;font-weight:600;color:#0b2b26;font-size:.85rem;margin-bottom:.3rem}
+        .modal-content .form-group input{width:100%;padding:.8rem 1rem;border-radius:12px;border:1px solid rgba(0,0,0,0.1);background:#f8fafc;color:#0b2b26;font-size:.9rem;font-family:'Inter',sans-serif}
+        .modal-content .form-group input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .modal-content .btn-signup{width:100%;background:#0b2b26;color:white;border:none;padding:.8rem;border-radius:50px;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .3s}
+        .modal-content .btn-signup:hover{background:#1a4d44;transform:scale(1.02)}
+        .modal-content .modal-message{text-align:center;padding:.8rem;border-radius:12px;margin-top:.8rem;font-size:.85rem;font-weight:600;display:none}
+        .modal-content .modal-message.error{display:block;background:rgba(231,76,60,0.15);color:#c0392b;border:2px solid rgba(231,76,60,0.3)}
+        .modal-content .modal-message.success{display:block;background:rgba(26,122,90,0.15);color:#0b2b26;border:2px solid rgba(26,122,90,0.3)}
+        @media(max-width:480px){.login-container{padding:2rem}.modal-content{padding:1.5rem}}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🥗 WELLNEST</div>
+        <div class="subtitle">Welcome back! Login to your account</div>
+        <div class="message" id="loginMessage"></div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        <div class="links">
+            <a onclick="alert('📧 Password reset link sent to your email!')">Forgot Password?</a>
+            <a onclick="openSignup()">Create Account</a>
+        </div>
+        <div class="signup-text">
+            Don't have an account? <a onclick="openSignup()">Sign Up</a>
+        </div>
+        <a href="/" class="back-home">← Back to Home</a>
+    </div>
+
+    <!-- Signup Modal -->
+    <div class="modal-overlay" id="signupModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeSignup()">✕</button>
+            <h2>📝 Create Account</h2>
+            <p class="subtitle">Sign up to start your wellness journey</p>
+            <div class="modal-message" id="signupMessage"></div>
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signupName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="signupConfirm" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="btn-signup">Create Account</button>
+            </form>
+            <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:#0b2b26;opacity:.5;">
+                Already have an account? <a onclick="closeSignup()" style="color:#1a7a5a;cursor:pointer;font-weight:600;">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ===== USERS DATABASE =====
+        function getUsers() {
+            const users = localStorage.getItem('wellnest_users');
+            return users ? JSON.parse(users) : [];
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem('wellnest_users', JSON.stringify(users));
+        }
+
+        function findUser(email) {
+            const users = getUsers();
+            return users.find(u => u.email.toLowerCase() === email.toLowerCase());
+        }
+
+        // ===== SIGNUP =====
+        function openSignup() {
+            document.getElementById('signupModal').classList.add('active');
+            document.getElementById('signupMessage').textContent = '';
+            document.getElementById('signupMessage').className = 'modal-message';
+        }
+
+        function closeSignup() {
+            document.getElementById('signupModal').classList.remove('active');
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const msg = document.getElementById('signupMessage');
+
+            if (!name || !email || !password || !confirm) {
+                msg.textContent = '⚠️ Please fill in all fields';
+                msg.className = 'modal-message error';
+                return;
+            }
+
+            if (password.length < 6) {
+                msg.textContent = '⚠️ Password must be at least 6 characters';
+                msg.className = 'modal-message error';
+                return;
+            }
+
+            if (password !== confirm) {
+                msg.textContent = '⚠️ Passwords do not match';
+                msg.className = 'modal-message error';
+                return;
+            }
+
+            // Check if user already exists
+            if (findUser(email)) {
+                msg.textContent = '⚠️ This email is already registered. Please login.';
+                msg.className = 'modal-message error';
+                return;
+            }
+
+            // Save user
+            const users = getUsers();
+            users.push({
+                name: name,
+                email: email,
+                password: password,
+                created: new Date().toISOString()
+            });
+            saveUsers(users);
+
+            msg.textContent = '✅ Account created successfully! Please login.';
+            msg.className = 'modal-message success';
+
+            // Clear form
+            document.getElementById('signupName').value = '';
+            document.getElementById('signupEmail').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupConfirm').value = '';
+
+            setTimeout(() => {
+                closeSignup();
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginMessage').textContent = '✅ Account created! Please login.';
+                document.getElementById('loginMessage').className = 'message success';
+            }, 1500);
+        }
+
+        // ===== LOGIN =====
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const msg = document.getElementById('loginMessage');
+
+            if (!email || !password) {
+                msg.textContent = '⚠️ Please fill in all fields';
+                msg.className = 'message error';
+                return;
+            }
+
+            // Check if user exists
+            const user = findUser(email);
+            if (!user) {
+                msg.textContent = '❌ No account found with this email. Please sign up first.';
+                msg.className = 'message error';
+                return;
+            }
+
+            // Check password
+            if (user.password !== password) {
+                msg.textContent = '❌ Incorrect password. Please try again.';
+                msg.className = 'message error';
+                return;
+            }
+
+            // Login successful
+            msg.textContent = '✅ Login successful! Welcome back, ' + user.name + '!';
+            msg.className = 'message success';
+
+            // Store logged in user
+            localStorage.setItem('wellnest_current_user', JSON.stringify(user));
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        }
+
+        // ===== CLOSE MODAL ON OUTSIDE CLICK =====
+        document.getElementById('signupModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSignup();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSignup();
+        });
+
+        // ===== PRE-FILL LOGIN IF USER JUST SIGNED UP =====
+        window.onload = function() {
+            const currentUser = localStorage.getItem('wellnest_current_user');
+            if (currentUser) {
+                // User is already logged in, redirect to home
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

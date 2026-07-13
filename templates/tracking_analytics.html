@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking & Analytics | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:2.5rem 0 1.5rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:2rem}
+        .stat-card{background:rgba(255,255,255,0.1);backdrop-filter:blur(12px);border-radius:20px;padding:1.5rem;border:1px solid rgba(255,255,255,0.12);text-align:center;transition:all .3s}
+        .stat-card:hover{transform:translateY(-5px);box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+        .stat-card .stat-icon{font-size:2.5rem;display:block;margin-bottom:.5rem}
+        .stat-card .stat-value{font-size:2.2rem;font-weight:800;color:#1a7a5a;display:block}
+        .stat-card .stat-label{font-size:.85rem;color:#0b2b26;opacity:.7}
+        .stat-change{font-size:.8rem;font-weight:700;margin-top:.3rem;display:inline-block;padding:.2rem .8rem;border-radius:20px;background:rgba(26,122,90,0.12);color:#0b2b26}
+        .stat-change.up{color:#0b2b26;background:rgba(26,122,90,0.12)}
+        .stat-change.down{color:#0b2b26;background:rgba(231,76,60,0.1)}
+
+        .section-box{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border-radius:20px;padding:1.8rem;border:1px solid rgba(255,255,255,0.1);margin-bottom:1.5rem}
+        .section-box h3{font-size:1.2rem;color:#0b2b26;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem}
+
+        .tracker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .tracker-item{background:rgba(255,255,255,0.05);border-radius:14px;padding:1.2rem;border:1px solid rgba(255,255,255,0.06)}
+        .tracker-item label{display:block;font-weight:600;color:#0b2b26;font-size:.9rem;margin-bottom:.3rem}
+        .tracker-item input{width:100%;padding:.6rem 1rem;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#0b2b26;font-size:.9rem;font-family:'Inter',sans-serif}
+        .tracker-item input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .tracker-item .unit{font-size:.8rem;color:#0b2b26;opacity:.5;margin-top:.2rem;display:block}
+
+        .btn-track{background:#0b2b26;color:white;border:none;padding:.6rem 1.5rem;border-radius:50px;font-weight:600;cursor:pointer;transition:all .3s;font-size:.85rem;margin-top:.5rem}
+        .btn-track:hover{background:#1a4d44;transform:scale(1.02)}
+
+        .progress-bar-container{background:rgba(255,255,255,0.06);border-radius:10px;height:12px;overflow:hidden;margin:.5rem 0}
+        .progress-bar{height:100%;border-radius:10px;transition:width 1s ease;width:0%}
+        .progress-bar.green{background:linear-gradient(90deg,#1a7a5a,#52b788)}
+        .progress-bar.blue{background:linear-gradient(90deg,#2d6a4f,#40916c)}
+        .progress-bar.orange{background:linear-gradient(90deg,#f39c12,#f1c40f)}
+
+        .allergy-tags{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+        .allergy-tag{background:rgba(231,76,60,0.12);color:#e74c3c;padding:.3rem .8rem;border-radius:50px;font-size:.8rem;font-weight:500}
+        .allergy-tag.safe{background:rgba(46,204,113,0.12);color:#2ecc71}
+
+        .safety-tips{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+        .safety-tip{background:rgba(255,255,255,0.04);border-radius:14px;padding:1.2rem;border-left:3px solid #1a7a5a}
+        .safety-tip .tip-icon{font-size:1.5rem;display:block;margin-bottom:.3rem}
+        .safety-tip h4{font-size:.95rem;color:#0b2b26;margin-bottom:.2rem}
+        .safety-tip p{font-size:.85rem;color:#0b2b26;opacity:.7}
+
+        .log-list{max-height:200px;overflow-y:auto}
+        .log-item{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+        .log-item .log-date{font-size:.8rem;color:#0b2b26;opacity:.5}
+        .log-item .log-value{font-weight:600;color:#0b2b26}
+        .log-item .log-value.green{color:#1a7a5a}
+
+        @media(max-width:1024px){
+            .dashboard-grid{grid-template-columns:repeat(2,1fr)}
+            .tracker-grid{grid-template-columns:1fr 1fr}
+            .safety-tips{grid-template-columns:1fr 1fr}
+        }
+        @media(max-width:768px){
+            .dashboard-grid{grid-template-columns:1fr}
+            .tracker-grid{grid-template-columns:1fr}
+            .safety-tips{grid-template-columns:1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps">Food Swaps</a>
+                <a href="/dietary-preferences">Dietary & Health</a>
+                <a href="/nutrition-chat">Nutrition Chat</a>
+                <a href="/tracking-analytics" class="active">Tracking</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>📊 <span>Tracking</span> & Analytics</h1>
+        <p>Track your health metrics, monitor progress, and stay safe with personalized alerts.</p>
+    </div>
+</section>
+
+<section class="container">
+    <!-- Dashboard Stats -->
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <span class="stat-icon">⚖️</span>
+            <span class="stat-value" id="weightDisplay">68</span>
+            <span class="stat-label">Weight (kg)</span>
+            <span class="stat-change up">▼ 0.5 kg lost this week</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">📏</span>
+            <span class="stat-value" id="bmiDisplay">22.4</span>
+            <span class="stat-label">BMI</span>
+            <span class="stat-change up">✅ Normal BMI range</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">💧</span>
+            <span class="stat-value" id="waterDisplay">2.8</span>
+            <span class="stat-label">Water Intake (L)</span>
+            <span class="stat-change up">💧 80% of daily goal</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-icon">🔥</span>
+            <span class="stat-value" id="caloriesDisplay">1850</span>
+            <span class="stat-label">Daily Calories</span>
+            <span class="stat-change up">📊 On track - 92%</span>
+        </div>
+    </div>
+
+    <!-- Trackers -->
+    <div class="section-box">
+        <h3>📋 Daily Health Trackers</h3>
+        <div class="tracker-grid">
+            <div class="tracker-item">
+                <label>⚖️ Weight (kg)</label>
+                <input type="number" id="weightInput" value="68" step="0.5">
+                <span class="unit">Enter your weight in kg</span>
+                <button class="btn-track" onclick="logWeight()">Log Weight</button>
+            </div>
+            <div class="tracker-item">
+                <label>💧 Water Intake (L)</label>
+                <input type="number" id="waterInput" value="2.8" step="0.1">
+                <span class="unit">Enter water in liters</span>
+                <button class="btn-track" onclick="logWater()">Log Water</button>
+            </div>
+            <div class="tracker-item">
+                <label>🏃 Calories Burned</label>
+                <input type="number" id="caloriesInput" value="1850" step="50">
+                <span class="unit">Enter calories burned</span>
+                <button class="btn-track" onclick="logCalories()">Log Calories</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="section-box">
+        <h3>📈 Weekly Progress</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+            <div>
+                <div style="display:flex;justify-content:space-between;font-size:.85rem;color:#0b2b26;opacity:.7">
+                    <span>Water Intake Goal: 3.5L</span>
+                    <span id="waterProgressText">2.8L (80%)</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar blue" id="waterProgress" style="width:80%"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;font-size:.85rem;color:#0b2b26;opacity:.7">
+                    <span>Calorie Goal: 2000 kcal</span>
+                    <span id="caloriesProgressText">1850 kcal (92%)</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar orange" id="caloriesProgress" style="width:92%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Safety Alerts -->
+    <div class="section-box">
+        <h3>⚠️ Safety & Health Alerts</h3>
+        <div class="safety-tips">
+            <div class="safety-tip">
+                <span class="tip-icon">✅</span>
+                <h4>Allergy Safe</h4>
+                <p>No allergens detected in your recent food logs</p>
+            </div>
+            <div class="safety-tip">
+                <span class="tip-icon">💧</span>
+                <h4>Stay Hydrated</h4>
+                <p>You're 80% to your daily water goal. Keep going!</p>
+            </div>
+            <div class="safety-tip">
+                <span class="tip-icon">⚖️</span>
+                <h4>Healthy BMI</h4>
+                <p>Your BMI is 22.4 - within the normal healthy range</p>
+            </div>
+        </div>
+        <div style="margin-top:1rem">
+            <div class="allergy-tags">
+                <span class="allergy-tag safe">✅ No known allergies logged</span>
+                <span class="allergy-tag">⚠️ Consult doctor for personalized advice</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Logs -->
+    <div class="section-box">
+        <h3>🕐 Recent Health Logs</h3>
+        <div class="log-list" id="logList">
+            <div class="log-item"><span class="log-date">Today 8:00 AM</span><span class="log-value green">💧 0.5L water</span></div>
+            <div class="log-item"><span class="log-date">Today 7:30 AM</span><span class="log-value green">⚖️ Weight: 68.0 kg</span></div>
+            <div class="log-item"><span class="log-date">Today 6:00 PM</span><span class="log-value green">🏃 450 kcal burned</span></div>
+            <div class="log-item"><span class="log-date">Yesterday 9:00 PM</span><span class="log-value">💧 2.0L water</span></div>
+            <div class="log-item"><span class="log-date">Yesterday 7:00 AM</span><span class="log-value">⚖️ Weight: 68.5 kg</span></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    let weight = 68;
+    let water = 2.8;
+    let calories = 1850;
+
+    function updateStats() {
+        document.getElementById('weightDisplay').textContent = weight;
+        document.getElementById('waterDisplay').textContent = water.toFixed(1);
+        document.getElementById('caloriesDisplay').textContent = calories;
+        
+        const waterPercent = Math.min((water / 3.5) * 100, 100);
+        const caloriePercent = Math.min((calories / 2000) * 100, 100);
+        
+        document.getElementById('waterProgress').style.width = waterPercent + '%';
+        document.getElementById('waterProgressText').textContent = water.toFixed(1) + 'L (' + Math.round(waterPercent) + '%)';
+        document.getElementById('caloriesProgress').style.width = caloriePercent + '%';
+        document.getElementById('caloriesProgressText').textContent = calories + ' kcal (' + Math.round(caloriePercent) + '%)';
+        
+        const bmi = (weight / ((1.72) * (1.72))).toFixed(1);
+        document.getElementById('bmiDisplay').textContent = bmi;
+    }
+
+    function logWeight() {
+        const val = parseFloat(document.getElementById('weightInput').value);
+        if (!val || val <= 0) return;
+        weight = val;
+        addLog('⚖️ Weight: ' + weight + ' kg');
+        updateStats();
+        document.getElementById('weightInput').value = '';
+    }
+
+    function logWater() {
+        const val = parseFloat(document.getElementById('waterInput').value);
+        if (!val || val <= 0) return;
+        water += val;
+        addLog('💧 ' + val.toFixed(1) + 'L water');
+        updateStats();
+        document.getElementById('waterInput').value = '';
+    }
+
+    function logCalories() {
+        const val = parseFloat(document.getElementById('caloriesInput').value);
+        if (!val || val <= 0) return;
+        calories += val;
+        addLog('🏃 ' + val + ' kcal burned');
+        updateStats();
+        document.getElementById('caloriesInput').value = '';
+    }
+
+    function addLog(msg) {
+        const list = document.getElementById('logList');
+        const item = document.createElement('div');
+        item.className = 'log-item';
+        const now = new Date();
+        const time = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        item.innerHTML = `<span class="log-date">Today ${time}</span><span class="log-value green">${msg}</span>`;
+        list.prepend(item);
+        while (list.children.length > 10) {
+            list.removeChild(list.lastChild);
+        }
+    }
+
+    updateStats();
+</script>
+
+</body>
+</html>

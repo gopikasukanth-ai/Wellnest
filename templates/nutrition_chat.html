@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Nutrition Chat | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:2rem 0 1.5rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .chat-section{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:30px;padding:0;border:1px solid rgba(255,255,255,0.15);margin-bottom:2rem;overflow:hidden;display:flex;flex-direction:column;height:600px}
+        .chat-header{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 2rem;background:rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08)}
+        .chat-header .chat-title{display:flex;align-items:center;gap:.8rem}
+        .chat-header .chat-title .online-dot{width:10px;height:10px;border-radius:50%;background:#2ecc71;display:inline-block;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+        .chat-header .chat-title h3{font-size:1.1rem;font-weight:700;color:#0b2b26}
+        .chat-header .chat-title p{font-size:.8rem;color:#0b2b26;opacity:.6}
+        .chat-header .chat-badge{background:rgba(26,122,90,0.12);padding:.3rem 1rem;border-radius:50px;font-size:.7rem;font-weight:600;color:#1a7a5a}
+
+        .chat-messages{flex:1;overflow-y:auto;padding:1.5rem 2rem;display:flex;flex-direction:column;gap:1rem}
+        .chat-messages::-webkit-scrollbar{width:5px}
+        .chat-messages::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:10px}
+        .chat-messages::-webkit-scrollbar-thumb{background:rgba(26,122,90,0.3);border-radius:10px}
+
+        .message{max-width:75%;padding:.8rem 1.2rem;border-radius:16px;animation:msgIn 0.3s ease}
+        @keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .message.user{align-self:flex-end;background:rgba(26,122,90,0.2);border-bottom-right-radius:4px}
+        .message.bot{align-self:flex-start;background:rgba(255,255,255,0.12);border-bottom-left-radius:4px}
+        .message .msg-content{font-size:.95rem;color:#0b2b26;line-height:1.6}
+        .message .msg-time{font-size:.7rem;color:#0b2b26;opacity:.4;margin-top:.3rem;display:block}
+        .message .msg-emoji{font-size:1.2rem;margin-right:.3rem}
+
+        .typing-indicator{display:none;align-self:flex-start;background:rgba(255,255,255,0.12);padding:.8rem 1.2rem;border-radius:16px;border-bottom-left-radius:4px}
+        .typing-indicator.active{display:flex;gap:.4rem;align-items:center}
+        .typing-indicator span{width:8px;height:8px;border-radius:50%;background:#0b2b26;opacity:.4;animation:typing 1.4s infinite}
+        .typing-indicator span:nth-child(2){animation-delay:.2s}
+        .typing-indicator span:nth-child(3){animation-delay:.4s}
+        @keyframes typing{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+
+        .quick-questions{display:flex;gap:.6rem;padding:.8rem 2rem 1rem;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06)}
+        .quick-questions .q-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);padding:.5rem 1.2rem;border-radius:50px;font-size:.8rem;color:#0b2b26;cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif;white-space:nowrap}
+        .quick-questions .q-btn:hover{background:rgba(26,122,90,0.15);border-color:#1a7a5a;transform:scale(1.02)}
+        .quick-questions .q-btn:active{transform:scale(0.95)}
+
+        .chat-input{display:flex;gap:.8rem;padding:1rem 2rem;border-top:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.04)}
+        .chat-input input{flex:1;padding:.8rem 1.2rem;border-radius:50px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#0b2b26;font-size:.95rem;font-family:'Inter',sans-serif}
+        .chat-input input::placeholder{color:#0b2b26;opacity:.4}
+        .chat-input input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .chat-input button{background:#0b2b26;color:white;border:none;padding:.8rem 1.8rem;border-radius:50px;font-weight:600;cursor:pointer;transition:all .3s;font-size:.95rem}
+        .chat-input button:hover{background:#1a4d44;transform:scale(1.02)}
+        .chat-input button:disabled{opacity:.5;cursor:not-allowed}
+
+        @media(max-width:768px){
+            .chat-section{height:500px}
+            .chat-messages{padding:1rem}
+            .message{max-width:85%}
+            .chat-header .chat-title h3{font-size:.95rem}
+            .quick-questions{padding:.5rem 1rem}
+            .chat-input{padding:.8rem 1rem}
+            .page-title h1{font-size:2rem}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .quick-questions .q-btn{font-size:.7rem;padding:.4rem .8rem}
+        }
+        @media(max-width:480px){
+            .chat-section{height:400px}
+            .message{max-width:90%}
+            .chat-input input{font-size:.85rem}
+            .chat-input button{font-size:.85rem;padding:.6rem 1.2rem}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps">Food Swaps</a>
+                <a href="/dietary-preferences">Dietary & Health</a>
+                <a href="/nutrition-chat" class="active">Nutrition Chat</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>💬 <span>AI Nutrition Chat</span></h1>
+        <p>Ask any nutrition question and get instant answers from your AI nutritionist.</p>
+    </div>
+</section>
+
+<section class="container">
+    <div class="chat-section">
+        <div class="chat-header">
+            <div class="chat-title">
+                <div>
+                    <h3>🤖 AI Nutritionist</h3>
+                    <p style="display:flex;align-items:center;gap:.3rem;"><span class="online-dot"></span> Online • 24/7</p>
+                </div>
+            </div>
+            <div class="chat-badge">✨ Smart AI</div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="msg-content">
+                    <span class="msg-emoji">👋</span> Hello! I'm your AI Nutrition Assistant. I can help you with:
+                    <div style="margin-top:.5rem;font-size:.85rem;opacity:.8;">
+                        • Meal planning and recipes<br>
+                        • Nutrition facts and calories<br>
+                        • Healthy food swaps<br>
+                        • Dietary preferences and allergies<br>
+                        • Weight management tips
+                    </div>
+                    <span class="msg-time">Just now</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span>
+            <span style="font-size:.8rem;opacity:.6;margin-left:.3rem;">AI is typing...</span>
+        </div>
+
+        <div class="quick-questions">
+            <span style="font-size:.8rem;color:#0b2b26;opacity:.6;margin-right:.5rem;font-weight:600;">⚡ Quick Questions:</span>
+            <button class="q-btn" onclick="askQuestion('What are the best foods for weight loss?')">⚖️ Weight Loss</button>
+            <button class="q-btn" onclick="askQuestion('How much protein do I need daily?')">💪 Protein</button>
+            <button class="q-btn" onclick="askQuestion('Give me a healthy vegetarian meal plan')">🥬 Vegan Plan</button>
+            <button class="q-btn" onclick="askQuestion('What foods help with better sleep?')">🌙 Better Sleep</button>
+            <button class="q-btn" onclick="askQuestion('Healthy food swaps for sugar')">🍬 Sugar Swaps</button>
+            <button class="q-btn" onclick="askQuestion('How to stay hydrated?')">💧 Hydration</button>
+            <button class="q-btn" onclick="askQuestion('What are the best sources of protein?')">🥩 Protein Sources</button>
+            <button class="q-btn" onclick="askQuestion('How many calories should I eat daily?')">📊 Calories</button>
+            <button class="q-btn" onclick="askQuestion('What are healthy breakfast options?')">🌅 Breakfast</button>
+            <button class="q-btn" onclick="askQuestion('What foods boost immunity?')">🛡️ Immunity</button>
+            <button class="q-btn" onclick="askQuestion('What are healthy carbs?')">🍞 Healthy Carbs</button>
+            <button class="q-btn" onclick="askQuestion('What are healthy fats?')">🥑 Healthy Fats</button>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Ask me anything about nutrition..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Complete AI Response Database
+    const aiResponses = {
+        'weight loss': {
+            response: '⚖️ WEIGHT LOSS GUIDE\n\n🥗 Best Foods for Weight Loss:\n• Leafy Greens - Low calorie, high fiber\n• Lean Proteins - Chicken, fish, tofu (keeps you full)\n• Healthy Fats - Avocado, nuts (in moderation)\n• Complex Carbs - Quinoa, brown rice, oats\n• Green Tea - Boosts metabolism\n\n🚫 Foods to Limit:\n• Sugary drinks and sodas\n• Refined carbs (white bread, pasta)\n• Processed snacks\n• Fried foods\n\n💡 Tips:\n• Eat protein with every meal\n• Drink water before meals\n• Control portion sizes\n• Exercise regularly\n\n📊 Sample Meal:\nBreakfast: Oats with berries\nLunch: Grilled chicken salad\nDinner: Salmon with vegetables',
+            emoji: '⚖️'
+        },
+        'protein': {
+            response: '💪 PROTEIN GUIDE\n\n📊 Daily Protein Needs:\n• Sedentary adult: 0.8g/kg body weight\n• Active adult: 1.2-1.7g/kg\n• Athletes: 1.6-2.2g/kg\n\n🍗 Best Protein Sources:\n• Chicken breast: 31g per 100g\n• Eggs: 6g per egg\n• Salmon: 22g per 100g\n• Paneer: 18g per 100g\n• Lentils: 9g per 100g\n• Greek Yogurt: 10g per 100g\n• Tofu: 8g per 100g\n\n💡 Tips:\n• Eat protein within 30 min after workout\n• Combine plant proteins for complete amino acids\n• Include protein in every meal\n\n🏋️ Sample High Protein Day:\nBreakfast: 3 eggs + toast\nLunch: 200g chicken breast\nSnack: Greek yogurt\nDinner: 200g fish with vegetables',
+            emoji: '💪'
+        },
+        'vegetarian meal plan': {
+            response: '🥬 VEGETARIAN MEAL PLAN (1 Day)\n\n🌅 BREAKFAST (7:00 AM)\n• Oats with berries, nuts, and almond milk\n• Green tea\n\n☀️ LUNCH (1:00 PM)\n• Quinoa bowl with roasted vegetables\n• Hummus and whole grain bread\n\n🌙 DINNER (7:00 PM)\n• Lentil curry with brown rice\n• Side salad\n\n🥗 SNACKS\n• Apple with peanut butter\n• Greek yogurt\n\n📊 Nutrition: ~1900 kcal, ~75g protein, ~40g fiber\n\n💡 Tips:\n• Add variety with different vegetables\n• Include legumes and beans daily\n• Use herbs and spices for flavor\n• Stay hydrated with water',
+            emoji: '🥬'
+        },
+        'sleep': {
+            response: '🌙 SLEEP & NUTRITION GUIDE\n\n😴 Best Foods for Sleep:\n• 🥛 Warm Milk - Tryptophan, calcium\n• 🍌 Banana - Magnesium, potassium\n• 🥜 Almonds - Magnesium, melatonin\n• 🍵 Chamomile Tea - Natural relaxant\n• 🍚 Complex Carbs - Brown rice, oats\n• 🥬 Leafy Greens - Calcium, magnesium\n• 🍎 Apple - Fiber, antioxidants\n\n🚫 Foods to Avoid Before Bed:\n• Caffeine (coffee, tea, chocolate)\n• Heavy/spicy meals\n• Sugary foods\n• Alcohol\n\n🛌 Sleep Tips:\n• Eat 2-3 hours before bed\n• Create a relaxing bedtime routine\n• Keep room cool and dark\n• Avoid screens 1 hour before bed\n\n💤 Aim for 7-9 hours of quality sleep!',
+            emoji: '🌙'
+        },
+        'sugar swaps': {
+            response: '🍬 SUGAR SUBSTITUTES GUIDE\n\n🔄 Healthy Alternatives:\n• 🍯 Honey - Natural, antibacterial, antioxidants\n• 🌴 Jaggery - Rich in iron, minerals, unrefined\n• 🌿 Stevia - Zero calories, natural plant extract\n• 📅 Dates - Natural sweetness, fiber, minerals\n• 🍁 Maple Syrup - Antioxidants, minerals\n• 🍌 Mashed Banana - Natural, fiber, potassium\n\n📊 Comparison (per tbsp):\n• Sugar: 48 kcal, 12g carbs\n• Honey: 64 kcal (sweeter, use less)\n• Jaggery: 60 kcal, rich in minerals\n• Stevia: 0 kcal, 0g carbs\n\n💡 Tips:\n• Start with 50% less sugar\n• Gradually reduce sugar in recipes\n• Use cinnamon for natural sweetness\n• Read labels for hidden sugars\n\n🍰 Healthy Dessert Idea:\n• Baked apple with cinnamon\n• Dark chocolate (70%+)',
+            emoji: '🍬'
+        },
+        'hydration': {
+            response: '💧 HYDRATION GUIDE\n\n📊 Daily Water Needs:\n• Men: ~3.7 liters (15 cups)\n• Women: ~2.7 liters (11 cups)\n• Pregnant women: ~3 liters\n• Athletes: More based on activity\n\n🥤 Hydrating Foods:\n• Watermelon - 92% water\n• Cucumber - 96% water\n• Orange - 87% water\n• Celery - 95% water\n• Tomato - 94% water\n\n💡 Hydration Tips:\n• Drink before you feel thirsty\n• Carry a water bottle everywhere\n• Add fruits/herbs for flavor (lemon, mint)\n• Set hourly reminders\n• Drink water with every meal\n\n⚠️ Signs of Dehydration:\n• Dark urine, fatigue, headache\n• Dry mouth, dizziness\n\n🚰 Stay hydrated for better energy and health!',
+            emoji: '💧'
+        }
+    };
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage('user', message);
+        input.value = '';
+        document.getElementById('sendBtn').disabled = true;
+
+        document.getElementById('typingIndicator').classList.add('active');
+        scrollToBottom();
+
+        setTimeout(() => {
+            const response = getAIResponse(message);
+            document.getElementById('typingIndicator').classList.remove('active');
+            addMessage('bot', response);
+            document.getElementById('sendBtn').disabled = false;
+        }, 1000 + Math.random() * 1000);
+    }
+
+    function askQuestion(question) {
+        document.getElementById('chatInput').value = question;
+        sendMessage();
+    }
+
+    function addMessage(type, content) {
+        const container = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${type}`;
+
+        const emojiMatch = content.match(/^([\u{1F000}-\u{1FFFF}]|[\u2600-\u27BF]|[\u{2700}-\u{27BF}]|[⚖️💪🥬🌙🍬💧🤖👋🍗🥗🍚🥑🥜🍵🍌🍎])/u);
+        let displayContent = content;
+        let emoji = '';
+        if (emojiMatch) {
+            emoji = emojiMatch[0];
+            displayContent = content.replace(emoji, '').trim();
+        }
+
+        msgDiv.innerHTML = `
+            <div class="msg-content">
+                ${emoji ? `<span class="msg-emoji">${emoji}</span>` : ''}
+                ${displayContent.replace(/\n/g, '<br>')}
+                <span class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+        `;
+        container.appendChild(msgDiv);
+        scrollToBottom();
+    }
+
+    function getAIResponse(message) {
+        const lowerMsg = message.toLowerCase();
+        
+        if (lowerMsg.includes('weight loss') || lowerMsg.includes('lose weight') || lowerMsg.includes('weight') || 
+            lowerMsg.includes('fat') || lowerMsg.includes('calorie') || lowerMsg.includes('diet plan') || 
+            lowerMsg.includes('how to lose') || lowerMsg.includes('reduce weight') || lowerMsg.includes('slim') ||
+            lowerMsg.includes('belly fat') || lowerMsg.includes('obesity') || lowerMsg.includes('overweight')) {
+            return aiResponses['weight loss'].response;
+        }
+        
+        else if (lowerMsg.includes('protein') || lowerMsg.includes('muscle') || lowerMsg.includes('gym') || 
+                 lowerMsg.includes('workout') || lowerMsg.includes('bodybuilding') || lowerMsg.includes('strength') ||
+                 lowerMsg.includes('gain muscle') || lowerMsg.includes('protein powder') || lowerMsg.includes('whey') ||
+                 lowerMsg.includes('amino acid') || lowerMsg.includes('build muscle') || lowerMsg.includes('protein shake')) {
+            return aiResponses['protein'].response;
+        }
+        
+        else if (lowerMsg.includes('vegetarian') || lowerMsg.includes('vegan') || lowerMsg.includes('plant based') || 
+                 lowerMsg.includes('no meat') || lowerMsg.includes('meatless') || lowerMsg.includes('plant protein') ||
+                 lowerMsg.includes('tofu') || lowerMsg.includes('paneer') || lowerMsg.includes('tempeh') ||
+                 lowerMsg.includes('vegetable diet') || lowerMsg.includes('green diet') || lowerMsg.includes('veg diet')) {
+            return aiResponses['vegetarian meal plan'].response;
+        }
+        
+        else if (lowerMsg.includes('sleep') || lowerMsg.includes('insomnia') || lowerMsg.includes('tired') || 
+                 lowerMsg.includes('fatigue') || lowerMsg.includes('restless') || lowerMsg.includes('bedtime') ||
+                 lowerMsg.includes('can\'t sleep') || lowerMsg.includes('sleepless') || lowerMsg.includes('night') ||
+                 lowerMsg.includes('dream') || lowerMsg.includes('rest') || lowerMsg.includes('good night')) {
+            return aiResponses['sleep'].response;
+        }
+        
+        else if (lowerMsg.includes('sugar') || lowerMsg.includes('sweet') || lowerMsg.includes('swap') || 
+                 lowerMsg.includes('honey') || lowerMsg.includes('jaggery') || lowerMsg.includes('stevia') ||
+                 lowerMsg.includes('dessert') || lowerMsg.includes('cake') || lowerMsg.includes('ice cream') ||
+                 lowerMsg.includes('chocolate') || lowerMsg.includes('candy') || lowerMsg.includes('sweetener') ||
+                 lowerMsg.includes('reduce sugar') || lowerMsg.includes('cut sugar') || lowerMsg.includes('sugar free')) {
+            return aiResponses['sugar swaps'].response;
+        }
+        
+        else if (lowerMsg.includes('water') || lowerMsg.includes('hydrate') || lowerMsg.includes('drink') || 
+                 lowerMsg.includes('fluid') || lowerMsg.includes('dehydrated') || lowerMsg.includes('thirsty') ||
+                 lowerMsg.includes('coconut water') || lowerMsg.includes('juice') || lowerMsg.includes('liquid') ||
+                 lowerMsg.includes('how much water') || lowerMsg.includes('drinking water') || lowerMsg.includes('hydration')) {
+            return aiResponses['hydration'].response;
+        }
+        
+        else if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey') || 
+                 lowerMsg.includes('good morning') || lowerMsg.includes('good evening') || lowerMsg.includes('good afternoon') ||
+                 lowerMsg.includes('namaste') || lowerMsg.includes('howdy') || lowerMsg.includes('greetings') ||
+                 lowerMsg.includes('what\'s up') || lowerMsg.includes('sup') || lowerMsg.includes('yo') ||
+                 lowerMsg.includes('hii') || lowerMsg.includes('hlo') || lowerMsg.includes('helo')) {
+            return `👋 Hello there! I'm your AI Nutrition Assistant. How can I help you today?\n\n💡 You can ask me about:\n• Weight loss 🏋️\n• Protein 💪\n• Vegan meal plans 🥬\n• Better sleep 🌙\n• Sugar swaps 🍬\n• Hydration 💧`;
+        }
+        
+        else if (lowerMsg.includes('help') || lowerMsg.includes('what can you do') || lowerMsg.includes('topics')) {
+            return `🤖 I can help with these nutrition topics:\n\n📋 Topics I know about:\n• Weight loss 🏋️\n• Protein 💪\n• Vegan/Vegetarian meal plans 🥬\n• Better sleep 🌙\n• Sugar alternatives 🍬\n• Hydration 💧\n\n💡 Just type your question naturally!`;
+        }
+        
+        else {
+            return `🤖 That's a great question about "${message}"!\n\n💡 Here's some general nutrition advice:\n• Eat a variety of colorful fruits and vegetables\n• Include protein with every meal\n• Choose whole grains over refined grains\n• Stay hydrated throughout the day\n• Limit processed foods and added sugars\n• Get regular exercise\n• Sleep 7-9 hours\n\n🔍 For more specific answers, try asking about:\n• Weight loss 🏋️\n• Protein 💪\n• Vegan/Vegetarian 🥬\n• Sleep 🌙\n• Sugar swaps 🍬\n• Hydration 💧`;
+        }
+    }
+
+    function scrollToBottom() {
+        const container = document.getElementById('chatMessages');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    document.getElementById('chatInput').focus();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dietary Preferences | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:3rem 0 2rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .pref-section{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:30px;padding:2.5rem;border:1px solid rgba(255,255,255,0.15);margin-bottom:2rem}
+        
+        .form-group{margin-bottom:1.8rem}
+        .form-group label{display:block;font-weight:700;color:#0b2b26;margin-bottom:.8rem;font-size:1.1rem}
+
+        .category-accordion{background:rgba(255,255,255,0.05);border-radius:16px;margin-bottom:.8rem;border:1px solid rgba(255,255,255,0.08)}
+        .category-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;cursor:pointer;transition:all .3s}
+        .category-header:hover{background:rgba(255,255,255,0.05)}
+        .category-header .cat-title{font-weight:600;color:#0b2b26;font-size:.95rem}
+        .category-header .cat-icon{font-size:1.2rem}
+        .category-header .arrow{font-size:.8rem;transition:transform .3s;color:#0b2b26;opacity:.6}
+        .category-header.active .arrow{transform:rotate(180deg)}
+        
+        .category-content{max-height:0;overflow:hidden;transition:max-height .5s ease;padding:0 1.5rem}
+        .category-content.open{max-height:1000px;padding:0 1.5rem 1.5rem}
+        .category-content .options{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.6rem}
+        .category-content .option-btn{background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.12);border-radius:12px;padding:.6rem 1rem;text-align:center;cursor:pointer;transition:all .3s;color:#0b2b26;font-weight:500;font-size:.85rem}
+        .category-content .option-btn:hover{border-color:rgba(26,122,90,0.3);background:rgba(255,255,255,0.1)}
+        .category-content .option-btn.active{border-color:#1a7a5a;background:rgba(26,122,90,0.15)}
+        .category-content .option-btn .emoji{font-size:1.3rem;display:block;margin-bottom:.2rem}
+        .category-content .option-btn input{display:none}
+
+        .btn-generate{background:#0b2b26;color:white;border:none;padding:1rem 3rem;border-radius:50px;font-weight:700;font-size:1.1rem;cursor:pointer;transition:all .3s;width:100%;margin-top:1rem}
+        .btn-generate:hover{background:#1a4d44;transform:scale(1.02)}
+
+        .results-section{display:none;background:rgba(255,255,255,0.08);border-radius:20px;padding:2rem;margin-top:2rem;border:1px solid rgba(255,255,255,0.08);animation:fadeIn 0.6s ease}
+        .results-section.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        .results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:1.5rem}
+        .result-card{background:rgba(255,255,255,0.05);border-radius:16px;padding:1.5rem;text-align:center;border:1px solid rgba(255,255,255,0.05)}
+        .result-card .icon{font-size:2.5rem;display:block;margin-bottom:.5rem}
+        .result-card h4{font-size:1rem;color:#0b2b26;margin-bottom:.3rem}
+        .result-card p{font-size:.85rem;color:#0b2b26;opacity:.7}
+
+        .summary-box{background:rgba(26,122,90,0.08);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(26,122,90,0.15)}
+        .summary-box h3{font-size:1.2rem;color:#1a7a5a;margin-bottom:.5rem}
+        .summary-box p{font-size:.95rem;color:#0b2b26;opacity:.8}
+
+        @media(max-width:768px){
+            .category-content .options{grid-template-columns:1fr 1fr}
+            .results-grid{grid-template-columns:1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+        }
+        @media(max-width:480px){
+            .category-content .options{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps">Food Swaps</a>
+                <a href="/dietary-preferences" class="active">Dietary & Health</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>🎯 <span>Dietary Preferences</span> & Health Goals</h1>
+        <p>Tell us about your dietary needs and health goals. We'll create a personalized nutrition plan for you.</p>
+    </div>
+</section>
+
+<section class="container">
+    <div class="pref-section">
+        
+        <!-- Health Goals - All Categories -->
+        <div class="form-group">
+            <label>🎯 Select your primary health goal</label>
+            
+            <!-- Category 1: Weight Management -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">⚖️</span> Weight Management</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">⚖️</span> Weight Loss
+                            <input type="radio" name="goal" value="weight-loss">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">📈</span> Weight Gain
+                            <input type="radio" name="goal" value="weight-gain">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🎯</span> Weight Maintenance
+                            <input type="radio" name="goal" value="weight-maintenance">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🔥</span> Body Fat Reduction
+                            <input type="radio" name="goal" value="body-fat-reduction">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 2: Fitness & Performance -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">💪</span> Fitness & Performance</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">💪</span> Muscle Gain
+                            <input type="radio" name="goal" value="muscle-gain">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🏃</span> Endurance Training
+                            <input type="radio" name="goal" value="endurance">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🏅</span> Athletic Performance
+                            <input type="radio" name="goal" value="athletic">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🔄</span> Post-Workout Recovery
+                            <input type="radio" name="goal" value="recovery">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">⚡</span> Pre-Workout Energy
+                            <input type="radio" name="goal" value="pre-workout">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🏋️</span> Strength Training
+                            <input type="radio" name="goal" value="strength">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 3: Chronic Conditions -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">🩺</span> Chronic Conditions</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🩸</span> Diabetes Control
+                            <input type="radio" name="goal" value="diabetes">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">❤️</span> Heart Health
+                            <input type="radio" name="goal" value="heart-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">📊</span> Blood Pressure Control
+                            <input type="radio" name="goal" value="blood-pressure">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🩺</span> Cholesterol Management
+                            <input type="radio" name="goal" value="cholesterol">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🦋</span> Thyroid Health
+                            <input type="radio" name="goal" value="thyroid">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🩸</span> PCOS Management
+                            <input type="radio" name="goal" value="pcos">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🦴</span> Arthritis Relief
+                            <input type="radio" name="goal" value="arthritis">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🩸</span> Anemia Prevention
+                            <input type="radio" name="goal" value="anemia">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🦴</span> Bone Health
+                            <input type="radio" name="goal" value="bone-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🫘</span> Kidney Health
+                            <input type="radio" name="goal" value="kidney-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🫁</span> Liver Health
+                            <input type="radio" name="goal" value="liver-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🦠</span> Gut Health
+                            <input type="radio" name="goal" value="gut-health">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 4: Mental Health & Brain -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">🧠</span> Mental Health & Brain</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🧠</span> Brain Health
+                            <input type="radio" name="goal" value="brain-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🧘</span> Stress Relief
+                            <input type="radio" name="goal" value="stress-relief">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🌙</span> Better Sleep
+                            <input type="radio" name="goal" value="better-sleep">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">😊</span> Mood Enhancement
+                            <input type="radio" name="goal" value="mood-enhancement">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">💡</span> Mental Clarity
+                            <input type="radio" name="goal" value="mental-clarity">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🌻</span> Depression Management
+                            <input type="radio" name="goal" value="depression">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 5: Women's Health -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">👩</span> Women's Health</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">👶</span> Pregnancy Nutrition
+                            <input type="radio" name="goal" value="pregnancy">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🤱</span> Post-Pregnancy
+                            <input type="radio" name="goal" value="post-pregnancy">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🩸</span> Menstrual Health
+                            <input type="radio" name="goal" value="menstrual">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🌸</span> Menopause Support
+                            <input type="radio" name="goal" value="menopause">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🍼</span> Breastfeeding
+                            <input type="radio" name="goal" value="breastfeeding">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🌱</span> Fertility Boost
+                            <input type="radio" name="goal" value="fertility">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 6: Children & Family -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">👨‍👩‍👧‍👦</span> Children & Family</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">👶</span> Child Nutrition
+                            <input type="radio" name="goal" value="child-nutrition">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🧑</span> Teen Nutrition
+                            <input type="radio" name="goal" value="teen-nutrition">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">👴</span> Senior Nutrition
+                            <input type="radio" name="goal" value="senior-nutrition">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">👨‍👩‍👧‍👦</span> Family Health
+                            <input type="radio" name="goal" value="family-health">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category 7: Lifestyle & Wellness -->
+            <div class="category-accordion">
+                <div class="category-header" onclick="toggleCategory(this)">
+                    <span class="cat-title"><span class="cat-icon">✨</span> Lifestyle & Wellness</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="category-content">
+                    <div class="options">
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">✨</span> Anti-Aging
+                            <input type="radio" name="goal" value="anti-aging">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🛡️</span> Immune Boost
+                            <input type="radio" name="goal" value="immune-boost">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🧹</span> Detox & Cleanse
+                            <input type="radio" name="goal" value="detox">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">⚡</span> Energy Boost
+                            <input type="radio" name="goal" value="energy-boost">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">💇</span> Hair Health
+                            <input type="radio" name="goal" value="hair-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">✨</span> Skin Health
+                            <input type="radio" name="goal" value="skin-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">💅</span> Nail Health
+                            <input type="radio" name="goal" value="nail-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">👁️</span> Eye Health
+                            <input type="radio" name="goal" value="eye-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🦷</span> Dental Health
+                            <input type="radio" name="goal" value="dental-health">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">⚖️</span> Hormone Balance
+                            <input type="radio" name="goal" value="hormone-balance">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🛡️</span> Immunity Boosting
+                            <input type="radio" name="goal" value="immunity">
+                        </div>
+                        <div class="option-btn" onclick="selectOption(this,'healthGoal')">
+                            <span class="emoji">🌿</span> Longevity
+                            <input type="radio" name="goal" value="longevity">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dietary Preference -->
+        <div class="form-group">
+            <label>🌱 What's your dietary preference?</label>
+            <div class="options" id="dietPreference" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem">
+                <div class="option-btn active" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🥗</span> Balanced
+                    <input type="radio" name="diet" value="balanced" checked>
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🥬</span> Vegetarian
+                    <input type="radio" name="diet" value="vegetarian">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🌿</span> Vegan
+                    <input type="radio" name="diet" value="vegan">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🥩</span> Non-Vegetarian
+                    <input type="radio" name="diet" value="nonveg">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🍞</span> Gluten-Free
+                    <input type="radio" name="diet" value="gluten-free">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🥑</span> Keto
+                    <input type="radio" name="diet" value="keto">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🕌</span> Halal
+                    <input type="radio" name="diet" value="halal">
+                </div>
+                <div class="option-btn" onclick="selectOption(this,'dietPreference')">
+                    <span class="emoji">🌾</span> Jain
+                    <input type="radio" name="diet" value="jain">
+                </div>
+            </div>
+        </div>
+
+        <!-- Allergies -->
+        <div class="form-group">
+            <label>🚫 Do you have any food allergies or restrictions?</label>
+            <div class="options" id="allergies" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.8rem">
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🥜</span> Nuts
+                    <input type="checkbox" value="nuts">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🥛</span> Dairy
+                    <input type="checkbox" value="dairy">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🌾</span> Gluten
+                    <input type="checkbox" value="gluten">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🦐</span> Shellfish
+                    <input type="checkbox" value="shellfish">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🥚</span> Eggs
+                    <input type="checkbox" value="eggs">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🌽</span> Soy
+                    <input type="checkbox" value="soy">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🍣</span> Fish
+                    <input type="checkbox" value="fish">
+                </div>
+                <div class="option-btn" onclick="toggleAllergy(this)">
+                    <span class="emoji">🍬</span> Peanuts
+                    <input type="checkbox" value="peanuts">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-generate" onclick="generatePlan()">✨ Generate Personalized Plan</button>
+
+        <div class="results-section" id="results">
+            <div class="summary-box" id="summaryBox"></div>
+            <h3 style="color:#0b2b26;margin-bottom:.5rem;">📋 Recommended Foods</h3>
+            <div class="results-grid" id="recommendations"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function toggleCategory(header) {
+        header.classList.toggle('active');
+        const content = header.nextElementSibling;
+        content.classList.toggle('open');
+    }
+
+    function selectOption(element, group) {
+        const parent = element.closest('.options');
+        const isCurrentlyActive = element.classList.contains('active');
+        
+        // Remove active class from ALL buttons in this group
+        parent.querySelectorAll('.option-btn').forEach(btn => {
+            btn.classList.remove('active');
+            const input = btn.querySelector('input');
+            if (input) {
+                input.checked = false;
+            }
+        });
+        
+        // If it was NOT active, activate it. If it was active, leave it unselected.
+        if (!isCurrentlyActive) {
+            element.classList.add('active');
+            const input = element.querySelector('input');
+            if (input) {
+                input.checked = true;
+            }
+        }
+    }
+
+    function toggleAllergy(element) {
+        element.classList.toggle('active');
+        const checkbox = element.querySelector('input');
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+        }
+    }
+
+    // Ensure dietary preference buttons work properly (toggle)
+    document.querySelectorAll('#dietPreference .option-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const parent = this.closest('.options');
+            const isCurrentlyActive = this.classList.contains('active');
+            
+            parent.querySelectorAll('.option-btn').forEach(b => {
+                b.classList.remove('active');
+                const inp = b.querySelector('input');
+                if (inp) inp.checked = false;
+            });
+            
+            if (!isCurrentlyActive) {
+                this.classList.add('active');
+                const inp = this.querySelector('input');
+                if (inp) inp.checked = true;
+            }
+        });
+    });
+
+    // Ensure allergy buttons work properly
+    document.querySelectorAll('#allergies .option-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.classList.toggle('active');
+            const checkbox = this.querySelector('input');
+            if (checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+        });
+    });
+
+    function generatePlan() {
+        const goal = document.querySelector('input[name="goal"]:checked');
+        if (!goal) {
+            alert('⚠️ Please select a health goal first!');
+            return;
+        }
+        const diet = document.querySelector('input[name="diet"]:checked');
+        if (!diet) {
+            alert('⚠️ Please select a dietary preference!');
+            return;
+        }
+        const allergies = [];
+        document.querySelectorAll('#allergies .option-btn.active input').forEach(input => {
+            if (input.checked) {
+                allergies.push(input.value);
+            }
+        });
+
+        const results = document.getElementById('results');
+        results.classList.add('active');
+
+        const recommendations = getRecommendations(goal.value, diet.value, allergies);
+
+        const goalNames = {
+            'weight-loss': 'Weight Loss',
+            'weight-gain': 'Weight Gain',
+            'weight-maintenance': 'Weight Maintenance',
+            'body-fat-reduction': 'Body Fat Reduction',
+            'muscle-gain': 'Muscle Gain',
+            'endurance': 'Endurance Training',
+            'athletic': 'Athletic Performance',
+            'recovery': 'Post-Workout Recovery',
+            'pre-workout': 'Pre-Workout Energy',
+            'strength': 'Strength Training',
+            'diabetes': 'Diabetes Control',
+            'heart-health': 'Heart Health',
+            'blood-pressure': 'Blood Pressure Control',
+            'cholesterol': 'Cholesterol Management',
+            'thyroid': 'Thyroid Health',
+            'pcos': 'PCOS Management',
+            'arthritis': 'Arthritis Relief',
+            'anemia': 'Anemia Prevention',
+            'bone-health': 'Bone Health',
+            'kidney-health': 'Kidney Health',
+            'liver-health': 'Liver Health',
+            'gut-health': 'Gut Health',
+            'brain-health': 'Brain Health',
+            'stress-relief': 'Stress Relief',
+            'better-sleep': 'Better Sleep',
+            'mood-enhancement': 'Mood Enhancement',
+            'mental-clarity': 'Mental Clarity',
+            'depression': 'Depression Management',
+            'pregnancy': 'Pregnancy Nutrition',
+            'post-pregnancy': 'Post-Pregnancy',
+            'menstrual': 'Menstrual Health',
+            'menopause': 'Menopause Support',
+            'breastfeeding': 'Breastfeeding',
+            'fertility': 'Fertility Boost',
+            'child-nutrition': 'Child Nutrition',
+            'teen-nutrition': 'Teen Nutrition',
+            'senior-nutrition': 'Senior Nutrition',
+            'family-health': 'Family Health',
+            'anti-aging': 'Anti-Aging',
+            'immune-boost': 'Immune Boost',
+            'detox': 'Detox & Cleanse',
+            'energy-boost': 'Energy Boost',
+            'hair-health': 'Hair Health',
+            'skin-health': 'Skin Health',
+            'nail-health': 'Nail Health',
+            'eye-health': 'Eye Health',
+            'dental-health': 'Dental Health',
+            'hormone-balance': 'Hormone Balance',
+            'immunity': 'Immunity Boosting',
+            'longevity': 'Longevity'
+        };
+        const dietNames = {
+            'balanced': 'Balanced',
+            'vegetarian': 'Vegetarian',
+            'vegan': 'Vegan',
+            'nonveg': 'Non-Vegetarian',
+            'gluten-free': 'Gluten-Free',
+            'keto': 'Keto',
+            'halal': 'Halal',
+            'jain': 'Jain'
+        };
+
+        const summaryBox = document.getElementById('summaryBox');
+        summaryBox.innerHTML = `
+            <h3>📝 Your Personalized Plan</h3>
+            <p><strong>Goal:</strong> ${goalNames[goal.value] || goal.value}</p>
+            <p><strong>Diet:</strong> ${dietNames[diet.value]}</p>
+            ${allergies.length > 0 ? `<p><strong>Allergies:</strong> ${allergies.join(', ')}</p>` : '<p><strong>Allergies:</strong> None</p>'}
+            <p style="margin-top:.5rem;font-size:.9rem;">Based on your selections, here are some recommended foods for you:</p>
+        `;
+
+        const container = document.getElementById('recommendations');
+        container.innerHTML = recommendations.map(item => `
+            <div class="result-card">
+                <span class="icon">${item.icon}</span>
+                <h4>${item.name}</h4>
+                <p>${item.desc}</p>
+            </div>
+        `).join('');
+
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getRecommendations(goal, diet, allergies) {
+        const allRecommendations = {
+            'weight-loss': [
+                { icon: '🥗', name: 'Leafy Green Salad', desc: 'Low calorie, high fiber' },
+                { icon: '🍗', name: 'Grilled Chicken Breast', desc: 'Lean protein, 165 kcal' },
+                { icon: '🐟', name: 'Baked Salmon', desc: 'Rich in omega-3' },
+                { icon: '🥑', name: 'Avocado Toast', desc: 'Healthy fats' },
+                { icon: '🍚', name: 'Quinoa Bowl', desc: 'Complete protein, high fiber' },
+                { icon: '🥦', name: 'Steamed Broccoli', desc: 'Low calorie, high vitamins' },
+                { icon: '🍎', name: 'Apple with Almond Butter', desc: 'Natural sweetness, fiber' },
+                { icon: '🥛', name: 'Greek Yogurt', desc: 'High protein, probiotics' },
+                { icon: '🥜', name: 'Handful of Almonds', desc: 'Healthy fats, protein' },
+                { icon: '💧', name: 'Infused Water', desc: 'Stay hydrated, zero calories' }
+            ],
+            'weight-gain': [
+                { icon: '🥩', name: 'Lean Red Meat', desc: 'Rich in protein and iron' },
+                { icon: '🍗', name: 'Chicken Thighs', desc: 'Higher fat, more calories' },
+                { icon: '🥚', name: 'Eggs', desc: 'Complete protein, 6g each' },
+                { icon: '🥛', name: 'Full Cream Milk', desc: '150 kcal per glass' },
+                { icon: '🧀', name: 'Cheese', desc: 'High in protein and fat' },
+                { icon: '🥜', name: 'Peanut Butter', desc: 'High calories, healthy fats' },
+                { icon: '🍌', name: 'Banana Smoothie', desc: 'High carbs, energy boost' },
+                { icon: '🍚', name: 'Brown Rice', desc: 'Complex carbs, sustained energy' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats, 240 kcal' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Healthy treat, antioxidants' }
+            ],
+            'weight-maintenance': [
+                { icon: '🥗', name: 'Mixed Green Salad', desc: 'Balanced, light' },
+                { icon: '🍗', name: 'Grilled Chicken', desc: 'Lean protein, 165 kcal' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3, good for heart' },
+                { icon: '🍚', name: 'Brown Rice', desc: 'Complex carbs, fiber-rich' },
+                { icon: '🥦', name: 'Roasted Vegetables', desc: 'Vitamins, minerals' },
+                { icon: '🍎', name: 'Fresh Fruits', desc: 'Natural sugars, vitamins' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics, protein' },
+                { icon: '🥜', name: 'Nuts', desc: 'Healthy fats, protein' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' }
+            ],
+            'body-fat-reduction': [
+                { icon: '🥩', name: 'Lean Proteins', desc: 'Chicken, fish, tofu' },
+                { icon: '🥬', name: 'Green Vegetables', desc: 'Low calorie, high fiber' },
+                { icon: '🥑', name: 'Healthy Fats', desc: 'Avocado, olive oil' },
+                { icon: '🌾', name: 'High Fiber Foods', desc: 'Oats, quinoa, brown rice' },
+                { icon: '🍎', name: 'Low Sugar Fruits', desc: 'Berries, apples' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Boosts metabolism' },
+                { icon: '🥛', name: 'Greek Yogurt', desc: 'High protein, low fat' },
+                { icon: '🥜', name: 'Almonds', desc: 'Healthy fats, protein' },
+                { icon: '🌶️', name: 'Spices', desc: 'Cinnamon, ginger, turmeric' }
+            ],
+            'muscle-gain': [
+                { icon: '🥩', name: 'Chicken Breast', desc: '31g protein per serving' },
+                { icon: '🥚', name: 'Eggs', desc: '6g protein each' },
+                { icon: '🐟', name: 'Salmon', desc: '22g protein, omega-3' },
+                { icon: '🧀', name: 'Paneer', desc: '18g protein for vegetarians' },
+                { icon: '🥛', name: 'Whey Protein', desc: 'Fast absorption' },
+                { icon: '🍚', name: 'Oats', desc: 'Complex carbs, sustained energy' },
+                { icon: '🍌', name: 'Banana', desc: 'Quick energy, potassium' },
+                { icon: '🥑', name: 'Almonds', desc: 'Healthy fats, protein' },
+                { icon: '🥛', name: 'Milk', desc: 'Casein protein, slow release' },
+                { icon: '🍠', name: 'Sweet Potato', desc: 'Complex carbs, vitamins' }
+            ],
+            'endurance': [
+                { icon: '🍚', name: 'Oats', desc: 'Slow-release carbs' },
+                { icon: '🍌', name: 'Banana', desc: 'Quick energy, potassium' },
+                { icon: '🍠', name: 'Sweet Potato', desc: 'Complex carbs, vitamin A' },
+                { icon: '🥜', name: 'Peanut Butter', desc: 'Protein, healthy fats' },
+                { icon: '🥛', name: 'Milk', desc: 'Protein, calcium, electrolytes' },
+                { icon: '🍗', name: 'Chicken Breast', desc: 'Lean protein' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3, reduces inflammation' },
+                { icon: '🥛', name: 'Greek Yogurt', desc: 'Protein, probiotics' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats, potassium' },
+                { icon: '💧', name: 'Coconut Water', desc: 'Natural electrolytes' }
+            ],
+            'athletic': [
+                { icon: '🥩', name: 'Lean Meat', desc: 'High quality protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Complete protein' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🍚', name: 'Quinoa', desc: 'Complete protein, complex carbs' },
+                { icon: '🍌', name: 'Banana', desc: 'Quick energy, potassium' },
+                { icon: '🥛', name: 'Greek Yogurt', desc: 'Protein, probiotics' },
+                { icon: '🥜', name: 'Almonds', desc: 'Energy, healthy fats' },
+                { icon: '🍠', name: 'Sweet Potato', desc: 'Complex carbs' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Vitamins, minerals' },
+                { icon: '💧', name: 'Hydration', desc: 'Stay hydrated' }
+            ],
+            'recovery': [
+                { icon: '🥩', name: 'Protein Shakes', desc: 'Fast absorption' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3, reduces soreness' },
+                { icon: '🥛', name: 'Turmeric Milk', desc: 'Anti-inflammatory' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium, prevents cramps' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3, antioxidants' },
+                { icon: '🍚', name: 'Brown Rice', desc: 'Carbs, replenish glycogen' },
+                { icon: '🥬', name: 'Leafy Greens', desc: 'Vitamins, minerals' },
+                { icon: '🧄', name: 'Garlic', desc: 'Anti-inflammatory' },
+                { icon: '💧', name: 'Water', desc: 'Rehydrate' }
+            ],
+            'pre-workout': [
+                { icon: '🍌', name: 'Banana', desc: 'Quick energy' },
+                { icon: '🥣', name: 'Oatmeal', desc: 'Slow-release carbs' },
+                { icon: '🍞', name: 'Whole Grain Toast', desc: 'Carbs for energy' },
+                { icon: '🥛', name: 'Greek Yogurt', desc: 'Protein, sustained energy' },
+                { icon: '🍎', name: 'Apple', desc: 'Natural sugars' },
+                { icon: '🥜', name: 'Peanut Butter', desc: 'Protein, fats' },
+                { icon: '🥛', name: 'Smoothie', desc: 'Fruits, protein' },
+                { icon: '🍚', name: 'Rice Cakes', desc: 'Carbs, easy to digest' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, energy' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'strength': [
+                { icon: '🥩', name: 'Red Meat', desc: 'Iron, zinc, protein' },
+                { icon: '🍗', name: 'Chicken', desc: 'Lean protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Complete protein' },
+                { icon: '🥛', name: 'Whey Protein', desc: 'Fast absorption' },
+                { icon: '🍚', name: 'Oats', desc: 'Carbs for energy' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium, energy' },
+                { icon: '🥜', name: 'Peanuts', desc: 'Protein, healthy fats' },
+                { icon: '🥛', name: 'Milk', desc: 'Casein protein, calcium' },
+                { icon: '🍠', name: 'Sweet Potato', desc: 'Complex carbs' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' }
+            ],
+            'diabetes': [
+                { icon: '🌾', name: 'Quinoa', desc: 'Low GI, high protein' },
+                { icon: '🥬', name: 'Broccoli', desc: 'Low carb, high fiber' },
+                { icon: '🥩', name: 'Chicken Breast', desc: 'Lean protein, no carbs' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3, no carbs' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats, low GI' },
+                { icon: '🍎', name: 'Apple', desc: 'Low GI, fiber' },
+                { icon: '🥜', name: 'Almonds', desc: 'Protein, healthy fats' },
+                { icon: '🫘', name: 'Lentils', desc: 'High fiber, protein' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics, protein' },
+                { icon: '🌿', name: 'Cinnamon', desc: 'Controls blood sugar' }
+            ],
+            'heart-health': [
+                { icon: '🥑', name: 'Avocado', desc: 'Monounsaturated fats' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🫒', name: 'Olive Oil', desc: 'Healthy fats' },
+                { icon: '🥗', name: 'Leafy Greens', desc: 'Vitamins, minerals' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, antioxidants' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🧄', name: 'Garlic', desc: 'Reduces blood pressure' }
+            ],
+            'blood-pressure': [
+                { icon: '🥬', name: 'Spinach', desc: 'Rich in potassium' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium-rich' },
+                { icon: '🥑', name: 'Avocado', desc: 'Potassium, healthy fats' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Vitamins, minerals' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Calcium, potassium' },
+                { icon: '🧄', name: 'Garlic', desc: 'Lowers blood pressure' },
+                { icon: '🥕', name: 'Carrot', desc: 'Potassium' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' }
+            ],
+            'cholesterol': [
+                { icon: '🌾', name: 'Oats', desc: 'Soluble fiber, lowers LDL' },
+                { icon: '🥜', name: 'Almonds', desc: 'Healthy fats' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🫒', name: 'Olive Oil', desc: 'Monounsaturated fats' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, antioxidants' },
+                { icon: '🫘', name: 'Beans', desc: 'Fiber, protein' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🧄', name: 'Garlic', desc: 'Reduces cholesterol' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' }
+            ],
+            'thyroid': [
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3, iodine' },
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, iodine' },
+                { icon: '🥚', name: 'Eggs', desc: 'Iodine, selenium' },
+                { icon: '🌿', name: 'Nori Seaweed', desc: 'Rich in iodine' },
+                { icon: '🥜', name: 'Brazil Nuts', desc: 'Selenium' },
+                { icon: '🐟', name: 'Tuna', desc: 'Iodine, protein' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🌾', name: 'Quinoa', desc: 'Protein, minerals' },
+                { icon: '🥩', name: 'Chicken', desc: 'Protein, zinc' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, antioxidants' }
+            ],
+            'pcos': [
+                { icon: '🥬', name: 'Leafy Greens', desc: 'Iron, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥜', name: 'Almonds', desc: 'Magnesium' },
+                { icon: '🫘', name: 'Lentils', desc: 'High fiber, protein' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🌾', name: 'Quinoa', desc: 'Complex carbs' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, antioxidants' },
+                { icon: '🧄', name: 'Garlic', desc: 'Anti-inflammatory' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' }
+            ],
+            'arthritis': [
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🫒', name: 'Olive Oil', desc: 'Anti-inflammatory' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🧄', name: 'Garlic', desc: 'Anti-inflammatory' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Vitamins' },
+                { icon: '🌿', name: 'Turmeric', desc: 'Anti-inflammatory' }
+            ],
+            'anemia': [
+                { icon: '🥩', name: 'Red Meat', desc: 'Rich in iron' },
+                { icon: '🥬', name: 'Spinach', desc: 'High in iron' },
+                { icon: '🫘', name: 'Lentils', desc: 'Rich in iron' },
+                { icon: '🥜', name: 'Beetroot', desc: 'High in iron' },
+                { icon: '🥚', name: 'Eggs', desc: 'Iron, protein' },
+                { icon: '🐟', name: 'Fish', desc: 'Iron, omega-3' },
+                { icon: '🍎', name: 'Pomegranate', desc: 'Rich in iron' },
+                { icon: '🌰', name: 'Dried Fruits', desc: 'Dates, raisins' },
+                { icon: '🍊', name: 'Citrus Fruits', desc: 'Vitamin C' },
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, protein' }
+            ],
+            'bone-health': [
+                { icon: '🥛', name: 'Milk', desc: 'Rich in calcium' },
+                { icon: '🧀', name: 'Cheese', desc: 'High in calcium' },
+                { icon: '🥬', name: 'Spinach', desc: 'Calcium, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Vitamin D' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium, magnesium' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Calcium, probiotics' },
+                { icon: '🥚', name: 'Eggs', desc: 'Vitamin D, protein' },
+                { icon: '🌾', name: 'Fortified Cereals', desc: 'Calcium' },
+                { icon: '🥬', name: 'Kale', desc: 'Calcium, vitamins' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' }
+            ],
+            'kidney-health': [
+                { icon: '🥬', name: 'Cabbage', desc: 'Low potassium' },
+                { icon: '🍎', name: 'Apple', desc: 'Low potassium, fiber' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Vitamins' },
+                { icon: '🫐', name: 'Blueberries', desc: 'Antioxidants' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3, protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🌾', name: 'Rice', desc: 'Low potassium' },
+                { icon: '🥕', name: 'Carrot', desc: 'Vitamins' },
+                { icon: '🧅', name: 'Onion', desc: 'Low potassium' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'liver-health': [
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🫐', name: 'Blueberries', desc: 'Antioxidants' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🧄', name: 'Garlic', desc: 'Detoxifies' },
+                { icon: '🌿', name: 'Turmeric', desc: 'Anti-inflammatory' },
+                { icon: '🥑', name: 'Olive Oil', desc: 'Healthy fats' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, antioxidants' }
+            ],
+            'gut-health': [
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🧄', name: 'Garlic', desc: 'Prebiotic' },
+                { icon: '🥬', name: 'Spinach', desc: 'Fiber' },
+                { icon: '🫘', name: 'Lentils', desc: 'High fiber' },
+                { icon: '🍌', name: 'Banana', desc: 'Prebiotic' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🥒', name: 'Cucumber', desc: 'Hydrating' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber' },
+                { icon: '🥛', name: 'Kefir', desc: 'Probiotics' },
+                { icon: '🌿', name: 'Fennel', desc: 'Good for digestion' }
+            ],
+            'brain-health': [
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🫐', name: 'Blueberries', desc: 'Antioxidants' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Antioxidants' },
+                { icon: '🥚', name: 'Eggs', desc: 'Choline' },
+                { icon: '🌾', name: 'Oats', desc: 'Energy' },
+                { icon: '🍵', name: 'Green Tea', desc: 'L-theanine' },
+                { icon: '🥜', name: 'Pumpkin Seeds', desc: 'Zinc' }
+            ],
+            'stress-relief': [
+                { icon: '🍵', name: 'Chamomile Tea', desc: 'Natural relaxant' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍌', name: 'Banana', desc: 'Magnesium' },
+                { icon: '🥛', name: 'Warm Milk', desc: 'Tryptophan' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Boosts serotonin' },
+                { icon: '🥜', name: 'Almonds', desc: 'Magnesium' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🌿', name: 'Lavender Tea', desc: 'Natural relaxant' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' }
+            ],
+            'better-sleep': [
+                { icon: '🥛', name: 'Warm Milk', desc: 'Tryptophan' },
+                { icon: '🍌', name: 'Banana', desc: 'Magnesium' },
+                { icon: '🥜', name: 'Almonds', desc: 'Magnesium' },
+                { icon: '🍵', name: 'Chamomile Tea', desc: 'Natural sleep aid' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Calcium' },
+                { icon: '🍚', name: 'Oats', desc: 'Complex carbs' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Melatonin' },
+                { icon: '🍵', name: 'Green Tea', desc: 'L-theanine' },
+                { icon: '🥬', name: 'Spinach', desc: 'Magnesium' }
+            ],
+            'mood-enhancement': [
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Boosts serotonin' },
+                { icon: '🍌', name: 'Banana', desc: 'Vitamin B6' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🍵', name: 'Green Tea', desc: 'L-theanine' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🌿', name: 'Spinach', desc: 'Folate' }
+            ],
+            'mental-clarity': [
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🫐', name: 'Blueberries', desc: 'Antioxidants' },
+                { icon: '🍵', name: 'Green Tea', desc: 'L-theanine' },
+                { icon: '🥚', name: 'Eggs', desc: 'Choline' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Flavonoids' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🥜', name: 'Pumpkin Seeds', desc: 'Zinc' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' }
+            ],
+            'depression': [
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍌', name: 'Banana', desc: 'Vitamin B6' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Boosts serotonin' },
+                { icon: '🥜', name: 'Walnuts', desc: 'Omega-3' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🍵', name: 'Green Tea', desc: 'L-theanine' },
+                { icon: '🥬', name: 'Spinach', desc: 'Folate' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' }
+            ],
+            'pregnancy': [
+                { icon: '🥬', name: 'Spinach', desc: 'Folate, iron' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, choline' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium, protein' },
+                { icon: '🫘', name: 'Lentils', desc: 'Folate, iron' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber, energy' }
+            ],
+            'post-pregnancy': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, protein' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber, energy' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium, protein' },
+                { icon: '🫘', name: 'Lentils', desc: 'Folate, iron' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'menstrual': [
+                { icon: '🥬', name: 'Spinach', desc: 'Iron' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, vitamins' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium, cramps' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Calcium' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Magnesium' },
+                { icon: '🥜', name: 'Almonds', desc: 'Magnesium' },
+                { icon: '🫘', name: 'Lentils', desc: 'Iron' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'menopause': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🫘', name: 'Lentils', desc: 'Fiber, protein' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Calcium' }
+            ],
+            'breastfeeding': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, protein' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber, energy' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium' },
+                { icon: '🫘', name: 'Lentils', desc: 'Folate, iron' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'fertility': [
+                { icon: '🥬', name: 'Spinach', desc: 'Folate, iron' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🫘', name: 'Lentils', desc: 'Folate, iron' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Calcium' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🌾', name: 'Quinoa', desc: 'Complete protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, vitamins' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Antioxidants' }
+            ],
+            'child-nutrition': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, vitamins' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, vitamins' },
+                { icon: '🍌', name: 'Banana', desc: 'Potassium, energy' },
+                { icon: '🥕', name: 'Carrot', desc: 'Vitamins' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🧀', name: 'Cheese', desc: 'Calcium, protein' },
+                { icon: '🌾', name: 'Oats', desc: 'Energy, fiber' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3' },
+                { icon: '🍗', name: 'Chicken', desc: 'Protein' }
+            ],
+            'teen-nutrition': [
+                { icon: '🥩', name: 'Lean Meat', desc: 'Protein, iron' },
+                { icon: '🥛', name: 'Milk', desc: 'Calcium' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber' },
+                { icon: '🍌', name: 'Banana', desc: 'Energy' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🥜', name: 'Nuts', desc: 'Healthy fats' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'senior-nutrition': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium, vitamin D' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🥜', name: 'Almonds', desc: 'Healthy fats' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥦', name: 'Broccoli', desc: 'Vitamins' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'family-health': [
+                { icon: '🥗', name: 'Mixed Salad', desc: 'Nutritious for all' },
+                { icon: '🍗', name: 'Grilled Chicken', desc: 'Healthy protein' },
+                { icon: '🐟', name: 'Fish', desc: 'Omega-3' },
+                { icon: '🍚', name: 'Brown Rice', desc: 'Healthy carbs' },
+                { icon: '🥦', name: 'Roasted Vegetables', desc: 'Vitamins' },
+                { icon: '🍎', name: 'Fresh Fruits', desc: 'Healthy snacks' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🌾', name: 'Oats', desc: 'Healthy breakfast' },
+                { icon: '🥜', name: 'Nuts', desc: 'Healthy snacks' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'anti-aging': [
+                { icon: '🫐', name: 'Blueberries', desc: 'Antioxidants' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Antioxidants' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🥕', name: 'Carrot', desc: 'Beta-carotene' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'immune-boost': [
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🧄', name: 'Garlic', desc: 'Natural immune booster' },
+                { icon: '🫚', name: 'Ginger', desc: 'Anti-inflammatory' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🌿', name: 'Turmeric', desc: 'Anti-inflammatory' }
+            ],
+            'detox': [
+                { icon: '🥬', name: 'Leafy Greens', desc: 'Detoxifies body' },
+                { icon: '🍋', name: 'Lemon Water', desc: 'Detoxifies body' },
+                { icon: '🥒', name: 'Cucumber', desc: 'Hydrates, detoxifies' },
+                { icon: '🍎', name: 'Apple', desc: 'Fiber, detoxifies' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🧄', name: 'Garlic', desc: 'Detoxifies' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Detoxifies' },
+                { icon: '🥛', name: 'Water', desc: 'Flushes toxins' },
+                { icon: '🌿', name: 'Cilantro', desc: 'Detoxifies heavy metals' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' }
+            ],
+            'energy-boost': [
+                { icon: '🍌', name: 'Banana', desc: 'Natural energy' },
+                { icon: '🍚', name: 'Oats', desc: 'Sustained energy' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, energy' },
+                { icon: '🥜', name: 'Nuts', desc: 'Healthy fats' },
+                { icon: '🍎', name: 'Apple', desc: 'Natural sugar' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Protein' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Natural energy' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'hair-health': [
+                { icon: '🥚', name: 'Eggs', desc: 'Protein, biotin' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Protein' },
+                { icon: '🌾', name: 'Oats', desc: 'Iron' },
+                { icon: '🥕', name: 'Carrot', desc: 'Vitamin A' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'skin-health': [
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Antioxidants' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🥕', name: 'Carrot', desc: 'Beta-carotene' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'nail-health': [
+                { icon: '🥚', name: 'Eggs', desc: 'Biotin, protein' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥛', name: 'Milk', desc: 'Calcium' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🌾', name: 'Oats', desc: 'Iron' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'eye-health': [
+                { icon: '🥕', name: 'Carrot', desc: 'Vitamin A' },
+                { icon: '🥬', name: 'Spinach', desc: 'Lutein' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥚', name: 'Eggs', desc: 'Lutein' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'dental-health': [
+                { icon: '🥛', name: 'Milk', desc: 'Calcium' },
+                { icon: '🧀', name: 'Cheese', desc: 'Calcium' },
+                { icon: '🥬', name: 'Spinach', desc: 'Calcium' },
+                { icon: '🍎', name: 'Apple', desc: 'Natural cleaner' },
+                { icon: '🥕', name: 'Carrot', desc: 'Natural cleaner' },
+                { icon: '🥜', name: 'Almonds', desc: 'Calcium' },
+                { icon: '🐟', name: 'Salmon', desc: 'Vitamin D' },
+                { icon: '🌾', name: 'Oats', desc: 'Fiber' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Good for gums' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ],
+            'hormone-balance': [
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Iron, vitamins' },
+                { icon: '🥜', name: 'Almonds', desc: 'Magnesium' },
+                { icon: '🫘', name: 'Lentils', desc: 'Fiber, protein' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🌾', name: 'Quinoa', desc: 'Complete protein' },
+                { icon: '🥚', name: 'Eggs', desc: 'Protein' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Magnesium' }
+            ],
+            'immunity': [
+                { icon: '🍊', name: 'Orange', desc: 'Vitamin C' },
+                { icon: '🧄', name: 'Garlic', desc: 'Immune booster' },
+                { icon: '🫚', name: 'Ginger', desc: 'Anti-inflammatory' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🥜', name: 'Almonds', desc: 'Vitamin E' },
+                { icon: '🌿', name: 'Turmeric', desc: 'Anti-inflammatory' }
+            ],
+            'longevity': [
+                { icon: '🫐', name: 'Berries', desc: 'Antioxidants' },
+                { icon: '🥑', name: 'Avocado', desc: 'Healthy fats' },
+                { icon: '🐟', name: 'Salmon', desc: 'Omega-3' },
+                { icon: '🥬', name: 'Spinach', desc: 'Vitamins' },
+                { icon: '🥜', name: 'Nuts', desc: 'Healthy fats' },
+                { icon: '🌾', name: 'Whole Grains', desc: 'Fiber' },
+                { icon: '🍵', name: 'Green Tea', desc: 'Antioxidants' },
+                { icon: '🥛', name: 'Yogurt', desc: 'Probiotics' },
+                { icon: '🍫', name: 'Dark Chocolate', desc: 'Antioxidants' },
+                { icon: '💧', name: 'Water', desc: 'Stay hydrated' }
+            ]
+        };
+
+        const dietAdditions = {
+            'vegetarian': { icon: '🥬', name: 'Plant-Based Proteins', desc: 'Lentils, chickpeas, tofu, paneer' },
+            'vegan': { icon: '🌿', name: 'Vegan Proteins', desc: 'Tofu, tempeh, legumes, quinoa' },
+            'gluten-free': { icon: '🍞', name: 'Gluten-Free Grains', desc: 'Quinoa, rice, millet, buckwheat' },
+            'keto': { icon: '🥑', name: 'Keto-Friendly Fats', desc: 'Avocado, coconut oil, ghee, cheese' },
+            'halal': { icon: '🕌', name: 'Halal Meats', desc: 'Halal-certified chicken, lamb, beef' },
+            'jain': { icon: '🌾', name: 'Jain-Friendly Foods', desc: 'No root vegetables, onion, garlic' }
+        };
+
+        let recommendations = allRecommendations[goal] || allRecommendations['weight-loss'];
+
+        if (dietAdditions[diet]) {
+            recommendations.push(dietAdditions[diet]);
+        }
+
+        // Filter allergies
+        if (allergies.includes('nuts') || allergies.includes('peanuts')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('nut') && 
+                !item.desc.toLowerCase().includes('nut') &&
+                !item.name.toLowerCase().includes('almond') &&
+                !item.name.toLowerCase().includes('walnut') &&
+                !item.name.toLowerCase().includes('cashew') &&
+                !item.name.toLowerCase().includes('peanut')
+            );
+        }
+        if (allergies.includes('dairy')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('dairy') && 
+                !item.name.toLowerCase().includes('milk') &&
+                !item.name.toLowerCase().includes('cheese') &&
+                !item.name.toLowerCase().includes('yogurt') &&
+                !item.name.toLowerCase().includes('paneer')
+            );
+        }
+        if (allergies.includes('gluten')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('wheat') && 
+                !item.name.toLowerCase().includes('bread') &&
+                !item.name.toLowerCase().includes('pasta') &&
+                !item.name.toLowerCase().includes('barley') &&
+                !item.name.toLowerCase().includes('oats')
+            );
+        }
+        if (allergies.includes('eggs')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('egg')
+            );
+        }
+        if (allergies.includes('shellfish')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('shrimp') && 
+                !item.name.toLowerCase().includes('lobster') &&
+                !item.name.toLowerCase().includes('crab') &&
+                !item.name.toLowerCase().includes('shellfish')
+            );
+        }
+        if (allergies.includes('fish')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('salmon') && 
+                !item.name.toLowerCase().includes('fish') &&
+                !item.name.toLowerCase().includes('sardines') &&
+                !item.name.toLowerCase().includes('tuna')
+            );
+        }
+        if (allergies.includes('soy')) {
+            recommendations = recommendations.filter(item => 
+                !item.name.toLowerCase().includes('tofu') && 
+                !item.name.toLowerCase().includes('soy')
+            );
+        }
+
+        return recommendations;
+    }
+</script>
+
+</body>
+</html>

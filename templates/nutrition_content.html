@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Content | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:2.5rem 0 1.5rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .category-tabs{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:2rem;justify-content:center}
+        .category-tab{padding:.6rem 1.8rem;border-radius:50px;border:2px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#0b2b26;cursor:pointer;transition:all .3s;font-family:'Inter',sans-serif;font-weight:600;font-size:.9rem}
+        .category-tab:hover{background:rgba(26,122,90,0.1);border-color:#1a7a5a}
+        .category-tab.active{background:#0b2b26;color:white;border-color:#0b2b26}
+
+        .content-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .content-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border-radius:20px;padding:1.5rem;border:1px solid rgba(255,255,255,0.08);transition:all .3s;cursor:pointer}
+        .content-card:hover{transform:translateY(-5px);box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+        .content-card .card-icon{font-size:2.5rem;display:block;margin-bottom:.5rem}
+        .content-card .card-tag{display:inline-block;padding:.1rem .8rem;border-radius:50px;font-size:.7rem;font-weight:600;background:rgba(26,122,90,0.1);color:#1a7a5a;margin-bottom:.5rem}
+        .content-card h4{font-size:1.1rem;color:#0b2b26;margin-bottom:.3rem}
+        .content-card p{font-size:.85rem;color:#0b2b26;opacity:.7;line-height:1.5}
+        .content-card .read-time{font-size:.75rem;color:#0b2b26;opacity:.5;margin-top:.5rem;display:block}
+
+        .featured-section{margin:2rem 0;background:rgba(255,255,255,0.06);border-radius:20px;padding:2rem;border:1px solid rgba(255,255,255,0.08)}
+        .featured-section h2{font-size:1.5rem;font-weight:700;color:#0b2b26;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem}
+        .featured-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:1000;justify-content:center;align-items:center}
+        .modal.active{display:flex}
+        .modal-content{background:rgba(255,255,255,0.95);border-radius:30px;padding:2.5rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;position:relative;border:1px solid rgba(255,255,255,0.2)}
+        .modal-content .close-btn{position:absolute;top:15px;right:20px;font-size:2rem;color:#0b2b26;cursor:pointer;background:none;border:none;transition:all .3s}
+        .modal-content .close-btn:hover{transform:rotate(90deg)}
+        .modal-content .modal-icon{font-size:3rem;display:block;margin-bottom:.5rem}
+        .modal-content .modal-tag{display:inline-block;padding:.1rem .8rem;border-radius:50px;font-size:.7rem;font-weight:600;background:rgba(26,122,90,0.1);color:#1a7a5a;margin-bottom:.5rem}
+        .modal-content h2{font-size:1.8rem;color:#0b2b26;margin-bottom:.5rem}
+        .modal-content .modal-body{color:#0b2b26;opacity:.8;line-height:1.8;font-size:.95rem}
+        .modal-content .modal-body ul{margin:.5rem 0;padding-left:1.5rem}
+        .modal-content .modal-body ul li{margin:.3rem 0}
+
+        @media(max-width:1024px){
+            .content-grid{grid-template-columns:repeat(2,1fr)}
+            .featured-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:768px){
+            .content-grid{grid-template-columns:1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+            .category-tabs{gap:.5rem}
+            .category-tab{padding:.4rem 1.2rem;font-size:.8rem}
+            .modal-content{padding:1.5rem}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps">Food Swaps</a>
+                <a href="/dietary-preferences">Dietary & Health</a>
+                <a href="/nutrition-chat">Nutrition Chat</a>
+                <a href="/tracking-analytics">Tracking</a>
+                <a href="/nutrition-content" class="active">Learn</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>📚 <span>Nutrition Content</span> & Learning</h1>
+        <p>Access articles, videos, blogs, podcasts, and e-books about nutrition. Learn about healthy eating and wellness tips from experts.</p>
+    </div>
+</section>
+
+<section class="container">
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+        <button class="category-tab active" onclick="filterContent('all')">📚 All</button>
+        <button class="category-tab" onclick="filterContent('articles')">📖 Articles</button>
+        <button class="category-tab" onclick="filterContent('videos')">🎥 Videos</button>
+        <button class="category-tab" onclick="filterContent('blogs')">📝 Blogs</button>
+        <button class="category-tab" onclick="filterContent('ebooks')">📚 E-Books</button>
+        <button class="category-tab" onclick="filterContent('quizzes')">🎓 Quizzes</button>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid" id="contentGrid">
+        <!-- Articles -->
+        <div class="content-card" data-category="articles" onclick="openModal('article1')">
+            <span class="card-icon">📖</span>
+            <span class="card-tag">Article</span>
+            <h4>10 Superfoods for Better Health</h4>
+            <p>Discover the top 10 superfoods that can transform your health and boost your immune system naturally.</p>
+            <span class="read-time">⏱️ 5 min read</span>
+        </div>
+
+        <div class="content-card" data-category="articles" onclick="openModal('article2')">
+            <span class="card-icon">📖</span>
+            <span class="card-tag">Article</span>
+            <h4>Understanding Macros: Protein, Carbs & Fats</h4>
+            <p>Learn the basics of macronutrients and how to balance them for your health goals.</p>
+            <span class="read-time">⏱️ 7 min read</span>
+        </div>
+
+        <div class="content-card" data-category="articles" onclick="openModal('article3')">
+            <span class="card-icon">📖</span>
+            <span class="card-tag">Article</span>
+            <h4>Meal Prep Guide for Beginners</h4>
+            <p>Start your meal prep journey with this complete guide for beginners. Save time and eat healthy.</p>
+            <span class="read-time">⏱️ 6 min read</span>
+        </div>
+
+        <!-- Videos -->
+        <div class="content-card" data-category="videos" onclick="openModal('video1')">
+            <span class="card-icon">🎥</span>
+            <span class="card-tag">Video</span>
+            <h4>How to Read Food Labels</h4>
+            <p>Learn to read food labels and make informed choices at the grocery store.</p>
+            <span class="read-time">⏱️ 12 min watch</span>
+        </div>
+
+        <div class="content-card" data-category="videos" onclick="openModal('video2')">
+            <span class="card-icon">🎥</span>
+            <span class="card-tag">Video</span>
+            <h4>Healthy Cooking Tips & Tricks</h4>
+            <p>Master healthy cooking with these simple tips and tricks from nutrition experts.</p>
+            <span class="read-time">⏱️ 8 min watch</span>
+        </div>
+
+        <div class="content-card" data-category="videos" onclick="openModal('video3')">
+            <span class="card-icon">🎥</span>
+            <span class="card-tag">Video</span>
+            <h4>Understanding Food Labels</h4>
+            <p>Learn to decode food labels and make healthier choices at the grocery store.</p>
+            <span class="read-time">⏱️ 10 min watch</span>
+        </div>
+
+        <!-- Blogs -->
+        <div class="content-card" data-category="blogs" onclick="openModal('blog1')">
+            <span class="card-icon">📝</span>
+            <span class="card-tag">Blog</span>
+            <h4>5 Common Nutrition Myths Debunked</h4>
+            <p>Separate fact from fiction with these 5 common nutrition myths that you need to stop believing.</p>
+            <span class="read-time">⏱️ 4 min read</span>
+        </div>
+
+        <div class="content-card" data-category="blogs" onclick="openModal('blog2')">
+            <span class="card-icon">📝</span>
+            <span class="card-tag">Blog</span>
+            <h4>How to Build a Healthy Plate</h4>
+            <p>Learn the simple formula for building a balanced, nutritious plate every time.</p>
+            <span class="read-time">⏱️ 3 min read</span>
+        </div>
+
+        <div class="content-card" data-category="blogs" onclick="openModal('blog3')">
+            <span class="card-icon">📝</span>
+            <span class="card-tag">Blog</span>
+            <h4>Mindful Eating: A Complete Guide</h4>
+            <p>Discover the art of mindful eating and transform your relationship with food.</p>
+            <span class="read-time">⏱️ 5 min read</span>
+        </div>
+
+        <!-- E-Books -->
+        <div class="content-card" data-category="ebooks" onclick="openModal('ebook1')">
+            <span class="card-icon">📚</span>
+            <span class="card-tag">E-Book</span>
+            <h4>Plant-Based Diet Guide</h4>
+            <p>Everything you need to know about transitioning to a healthy plant-based lifestyle.</p>
+            <span class="read-time">📥 Download Free PDF</span>
+        </div>
+
+        <div class="content-card" data-category="ebooks" onclick="openModal('ebook2')">
+            <span class="card-icon">📚</span>
+            <span class="card-tag">E-Book</span>
+            <h4>Healthy Meal Prep Recipes</h4>
+            <p>50+ healthy meal prep recipes for breakfast, lunch, dinner, and snacks.</p>
+            <span class="read-time">📥 Download Free PDF</span>
+        </div>
+
+        <!-- Quizzes -->
+        <div class="content-card" data-category="quizzes" onclick="openModal('quiz1')">
+            <span class="card-icon">🎓</span>
+            <span class="card-tag">Quiz</span>
+            <h4>Test Your Nutrition Knowledge</h4>
+            <p>Take this quick quiz to test your knowledge about nutrition and healthy eating.</p>
+            <span class="read-time">⏱️ 5 min quiz</span>
+        </div>
+
+        <div class="content-card" data-category="quizzes" onclick="openModal('quiz2')">
+            <span class="card-icon">🎓</span>
+            <span class="card-tag">Quiz</span>
+            <h4>Food & Mood Quiz</h4>
+            <p>Discover how the foods you eat affect your mood and mental well-being.</p>
+            <span class="read-time">⏱️ 3 min quiz</span>
+        </div>
+    </div>
+
+    <!-- Featured Section -->
+    <div class="featured-section">
+        <h2>⭐ Featured Content</h2>
+        <div class="featured-grid">
+            <div class="content-card" onclick="openModal('featured1')">
+                <span class="card-icon">📖</span>
+                <span class="card-tag">Featured</span>
+                <h4>Complete Guide to Indian Nutrition</h4>
+                <p>Explore the traditional Indian diet and learn how to make it healthier for modern lifestyle.</p>
+                <span class="read-time">⏱️ 10 min read</span>
+            </div>
+            <div class="content-card" onclick="openModal('featured2')">
+                <span class="card-icon">🎓</span>
+                <span class="card-tag">Featured</span>
+                <h4>Nutrition for Women's Health</h4>
+                <p>Specialized nutrition guide for women at every stage of life.</p>
+                <span class="read-time">⏱️ 8 min read</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal -->
+<div class="modal" id="contentModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()">✕</button>
+        <div id="modalContent">
+            <!-- Content will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const contentData = {
+        'article1': {
+            icon: '📖',
+            tag: 'Article',
+            title: '10 Superfoods for Better Health',
+            body: `
+                <h3>Boost Your Health with These Superfoods</h3>
+                <p>Superfoods are nutrient-dense foods that provide maximum health benefits. Here are the top 10 superfoods you should include in your diet:</p>
+                <ul>
+                    <li><strong>🫐 Blueberries</strong> - Rich in antioxidants and vitamin C</li>
+                    <li><strong>🥑 Avocado</strong> - Healthy fats, potassium, and fiber</li>
+                    <li><strong>🐟 Salmon</strong> - Omega-3 fatty acids, protein, and B vitamins</li>
+                    <li><strong>🥬 Spinach</strong> - Iron, calcium, vitamins A, C, and K</li>
+                    <li><strong>🥜 Walnuts</strong> - Omega-3, antioxidants, and healthy fats</li>
+                    <li><strong>🍠 Sweet Potato</strong> - Beta-carotene, fiber, and vitamin C</li>
+                    <li><strong>🥦 Broccoli</strong> - Vitamins C and K, fiber, and antioxidants</li>
+                    <li><strong>🍵 Green Tea</strong> - Antioxidants, boosts metabolism</li>
+                    <li><strong>🧄 Garlic</strong> - Natural immune booster, antioxidants</li>
+                    <li><strong>🍫 Dark Chocolate</strong> - Antioxidants, improves heart health</li>
+                </ul>
+                <p><strong>💡 Tip:</strong> Include at least 3-4 of these superfoods in your weekly diet for optimal health benefits!</p>
+            `
+        },
+        'article2': {
+            icon: '📖',
+            tag: 'Article',
+            title: 'Understanding Macros: Protein, Carbs & Fats',
+            body: `
+                <h3>Macronutrients Explained</h3>
+                <p>Macronutrients are the nutrients your body needs in large amounts. They provide energy and are essential for health.</p>
+                <h4>🍗 Protein</h4>
+                <p><strong>Role:</strong> Builds and repairs tissues, makes enzymes and hormones</p>
+                <p><strong>Sources:</strong> Chicken, fish, eggs, paneer, lentils, tofu</p>
+                <p><strong>Daily need:</strong> 0.8-1.7g per kg of body weight</p>
+                
+                <h4>🍞 Carbohydrates</h4>
+                <p><strong>Role:</strong> Primary energy source for the body</p>
+                <p><strong>Sources:</strong> Brown rice, quinoa, oats, fruits, vegetables</p>
+                <p><strong>Daily need:</strong> 45-65% of daily calories</p>
+                
+                <h4>🥑 Fats</h4>
+                <p><strong>Role:</strong> Energy storage, hormone production, brain health</p>
+                <p><strong>Sources:</strong> Avocado, olive oil, nuts, seeds, ghee</p>
+                <p><strong>Daily need:</strong> 20-35% of daily calories</p>
+            `
+        },
+        'article3': {
+            icon: '📖',
+            tag: 'Article',
+            title: 'Meal Prep Guide for Beginners',
+            body: `
+                <h3>Start Your Meal Prep Journey</h3>
+                <p>Meal prep is the secret to eating healthy without spending hours in the kitchen every day.</p>
+                <h4>📋 Step 1: Plan Your Meals</h4>
+                <p>Decide what you want to eat for the week. Include breakfast, lunch, dinner, and snacks.</p>
+                <h4>🛒 Step 2: Make a Grocery List</h4>
+                <p>Write down all the ingredients you need. Shop once for the whole week.</p>
+                <h4>🍳 Step 3: Cook in Bulk</h4>
+                <p>Cook large batches of grains, proteins, and vegetables.</p>
+                <h4>📦 Step 4: Portion and Store</h4>
+                <p>Divide into containers. Use airtight containers for freshness.</p>
+                <h4>⏰ Step 5: Repeat and Enjoy</h4>
+                <p>Simply repeat and eat throughout the week!</p>
+            `
+        },
+        'video1': {
+            icon: '🎥',
+            tag: 'Video',
+            title: 'How to Read Food Labels',
+            body: `
+                <h3>Decode Food Labels Like a Pro</h3>
+                <p>Food labels contain valuable information. Here's how to read them:</p>
+                <ul>
+                    <li><strong>📋 Serving Size</strong> - Check the serving size first</li>
+                    <li><strong>📊 Calories</strong> - Know your calorie intake</li>
+                    <li><strong>🚫 Saturated Fat</strong> - Limit to less than 10% of calories</li>
+                    <li><strong>🍬 Added Sugar</strong> - Choose products with less added sugar</li>
+                    <li><strong>🧂 Sodium</strong> - Keep under 2300mg per day</li>
+                    <li><strong>🌾 Fiber</strong> - Aim for 25-35g per day</li>
+                    <li><strong>🥩 Protein</strong> - Include protein-rich foods</li>
+                </ul>
+                <p><strong>💡 Tip:</strong> Choose products with fewer ingredients and more recognizable ones!</p>
+            `
+        },
+        'video2': {
+            icon: '🎥',
+            tag: 'Video',
+            title: 'Healthy Cooking Tips & Tricks',
+            body: `
+                <h3>Cook Healthy Like a Pro</h3>
+                <p>Transform your cooking with these simple tips:</p>
+                <ul>
+                    <li><strong>🫒 Use Healthy Oils</strong> - Olive oil, coconut oil, avocado oil</li>
+                    <li><strong>🧂 Reduce Salt</strong> - Use herbs and spices instead</li>
+                    <li><strong>🔥 Cook at Low Heat</strong> - Preserves nutrients</li>
+                    <li><strong>🥦 Steam Vegetables</strong> - Preserves vitamins and minerals</li>
+                    <li><strong>🍗 Choose Lean Proteins</strong> - Chicken, fish, tofu, legumes</li>
+                    <li><strong>🍚 Swap White for Brown</strong> - Brown rice, whole wheat pasta</li>
+                    <li><strong>🧄 Use Fresh Herbs</strong> - Adds flavor without extra calories</li>
+                </ul>
+            `
+        },
+        'video3': {
+            icon: '🎥',
+            tag: 'Video',
+            title: 'Understanding Food Labels',
+            body: `
+                <h3>Food Labels Made Simple</h3>
+                <p>Learn how to make informed choices at the grocery store by understanding food labels.</p>
+                <ul>
+                    <li><strong>🔍 Check the Ingredients List</strong> - First ingredient should be a whole food</li>
+                    <li><strong>📊 Review Nutrition Facts</strong> - Check calories, fat, sodium, sugar</li>
+                    <li><strong>✅ Look for Healthy Claims</strong> - "High Fiber", "Low Sugar", "Good Source of Protein"</li>
+                    <li><strong>🚫 Watch Out for Hidden Sugars</strong> - Look for sugar, corn syrup, fructose</li>
+                    <li><strong>🌾 Choose Whole Grains</strong> - "100% Whole Wheat", "Whole Grain"</li>
+                </ul>
+            `
+        },
+        'blog1': {
+            icon: '📝',
+            tag: 'Blog',
+            title: '5 Common Nutrition Myths Debunked',
+            body: `
+                <h3>Don't Fall for These Nutrition Myths</h3>
+                <ul>
+                    <li><strong>🚫 Myth 1: Carbs are bad for you</strong><br>False! Complex carbs are essential for energy and health.</li>
+                    <li><strong>🚫 Myth 2: Fat makes you fat</strong><br>False! Healthy fats are crucial for brain function and hormone health.</li>
+                    <li><strong>🚫 Myth 3: Eating late causes weight gain</strong><br>False! It's about total calories, not timing.</li>
+                    <li><strong>🚫 Myth 4: All calories are equal</strong><br>False! Quality matters more than quantity.</li>
+                    <li><strong>🚫 Myth 5: Detox diets work</strong><br>False! Your body has its own natural detox system.</li>
+                </ul>
+            `
+        },
+        'blog2': {
+            icon: '📝',
+            tag: 'Blog',
+            title: 'How to Build a Healthy Plate',
+            body: `
+                <h3>The Perfect Healthy Plate Formula</h3>
+                <p>Use this simple guide to build a balanced plate every time:</p>
+                <ul>
+                    <li><strong>🥗 Half the plate: Vegetables and Fruits</strong></li>
+                    <li><strong>🍗 Quarter the plate: Protein</strong></li>
+                    <li><strong>🍚 Quarter the plate: Whole Grains</strong></li>
+                    <li><strong>🥑 Add Healthy Fats</strong></li>
+                    <li><strong>💧 Drink Water</strong></li>
+                </ul>
+                <p><strong>💡 Tip:</strong> Eat mindfully and enjoy your food!</p>
+            `
+        },
+        'blog3': {
+            icon: '📝',
+            tag: 'Blog',
+            title: 'Mindful Eating: A Complete Guide',
+            body: `
+                <h3>Transform Your Relationship with Food</h3>
+                <p>Mindful eating is about paying attention to your food and eating experience. Here's how to practice it:</p>
+                <ul>
+                    <li><strong>🧘 Eat Without Distractions</strong></li>
+                    <li><strong>🍽️ Chew Slowly and Thoroughly</strong></li>
+                    <li><strong>👃 Use All Your Senses</strong></li>
+                    <li><strong>🧠 Listen to Your Body</strong></li>
+                    <li><strong>🙏 Practice Gratitude for Your Food</strong></li>
+                </ul>
+            `
+        },
+        'ebook1': {
+            icon: '📚',
+            tag: 'E-Book',
+            title: 'Plant-Based Diet Guide',
+            body: `
+                <h3>🌱 Complete Plant-Based Diet Guide</h3>
+                <p>This comprehensive guide will help you transition to a healthy plant-based lifestyle.</p>
+                <ul>
+                    <li><strong>🥬 Why Go Plant-Based?</strong> - Health benefits and environmental impact</li>
+                    <li><strong>🍗 Plant-Based Protein Sources</strong> - Lentils, tofu, tempeh, quinoa</li>
+                    <li><strong>🥛 Dairy Alternatives</strong> - Almond milk, coconut milk, oat milk</li>
+                    <li><strong>🍳 Easy Plant-Based Recipes</strong> - Quick, delicious, and nutritious</li>
+                    <li><strong>🧠 Nutritional Considerations</strong> - Vitamin B12, iron, and omega-3s</li>
+                </ul>
+                <p><strong>📥 Download the full e-book for free!</strong></p>
+            `
+        },
+        'ebook2': {
+            icon: '📚',
+            tag: 'E-Book',
+            title: 'Healthy Meal Prep Recipes',
+            body: `
+                <h3>🍲 50+ Healthy Meal Prep Recipes</h3>
+                <p>Make healthy eating easy with these meal prep recipes:</p>
+                <ul>
+                    <li><strong>🌅 Breakfast</strong> - Overnight oats, breakfast burritos, smoothie packs</li>
+                    <li><strong>☀️ Lunch</strong> - Salad jars, grain bowls, wraps</li>
+                    <li><strong>🌙 Dinner</strong> - Stir-fries, baked dishes, curries</li>
+                    <li><strong>🥗 Snacks</strong> - Energy bites, fruit, nuts, veggies and hummus</li>
+                    <li><strong>📋 Meal Prep Tips</strong> - Storage and reheating guide</li>
+                </ul>
+                <p><strong>📥 Download the full e-book for free!</strong></p>
+            `
+        },
+        'quiz1': {
+            icon: '🎓',
+            tag: 'Quiz',
+            title: 'Test Your Nutrition Knowledge',
+            body: `
+                <h3>📝 Nutrition Knowledge Quiz</h3>
+                <p>Test your nutrition knowledge with these 5 questions:</p>
+                <ul>
+                    <li><strong>1.</strong> How many servings of fruits and vegetables should you eat daily?</li>
+                    <li><strong>2.</strong> Which nutrient is the body's primary energy source?</li>
+                    <li><strong>3.</strong> How much water should you drink daily?</li>
+                    <li><strong>4.</strong> Which is a healthy source of protein?</li>
+                    <li><strong>5.</strong> What does BMI stand for?</li>
+                </ul>
+                <p><strong>💡 Challenge yourself and learn something new!</strong></p>
+            `
+        },
+        'quiz2': {
+            icon: '🎓',
+            tag: 'Quiz',
+            title: 'Food & Mood Quiz',
+            body: `
+                <h3>😊 Food & Mood Quiz</h3>
+                <p>Discover how the foods you eat affect your mood:</p>
+                <ul>
+                    <li><strong>1.</strong> Which food is known to boost serotonin?</li>
+                    <li><strong>2.</strong> What nutrient deficiency can cause fatigue?</li>
+                    <li><strong>3.</strong> Which drink can help reduce stress?</li>
+                    <li><strong>4.</strong> How does sugar affect your mood?</li>
+                    <li><strong>5.</strong> What is the connection between food and mental health?</li>
+                </ul>
+                <p><strong>💡 Learn more about the food-mood connection!</strong></p>
+            `
+        },
+        'featured1': {
+            icon: '📖',
+            tag: 'Featured',
+            title: 'Complete Guide to Indian Nutrition',
+            body: `
+                <h3>🇮🇳 Traditional Indian Diet Guide</h3>
+                <p>India's rich culinary heritage offers a variety of nutritious foods. Here's how to make it healthier:</p>
+                <ul>
+                    <li><strong>🌾 Whole Grains</strong> - Brown rice, millet, whole wheat</li>
+                    <li><strong>🫘 Legumes</strong> - Lentils, chickpeas, beans</li>
+                    <li><strong>🥬 Seasonal Vegetables</strong> - Spinach, cauliflower, eggplant</li>
+                    <li><strong>🧂 Smart Spices</strong> - Turmeric, cumin, coriander, ginger</li>
+                    <li><strong>📋 Healthy Cooking Tips</strong> - Use less oil, more spices</li>
+                </ul>
+                <p><strong>💡 Embrace traditional wisdom with modern nutrition!</strong></p>
+            `
+        },
+        'featured2': {
+            icon: '🎓',
+            tag: 'Featured',
+            title: 'Nutrition for Women\'s Health',
+            body: `
+                <h3>👩 Nutrition Guide for Women</h3>
+                <p>Women have unique nutritional needs at different stages of life. Here's what you need to know:</p>
+                <ul>
+                    <li><strong>🩸 Iron-rich Foods</strong> - Spinach, legumes, red meat</li>
+                    <li><strong>🦴 Calcium & Vitamin D</strong> - Dairy, sardines, sunlight</li>
+                    <li><strong>🧠 Omega-3 Fatty Acids</strong> - Salmon, walnuts, flax seeds</li>
+                    <li><strong>🌿 Folate & B Vitamins</strong> - Leafy greens, whole grains</li>
+                    <li><strong>⚖️ Balanced Diet for Hormonal Health</strong></li>
+                </ul>
+                <p><strong>💡 Prioritize your health at every stage of life!</strong></p>
+            `
+        }
+    };
+
+    function filterContent(category) {
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.textContent.includes(category.charAt(0).toUpperCase() + category.slice(1)) || category === 'all');
+        });
+        
+        document.querySelectorAll('.content-card').forEach(card => {
+            if (category === 'all' || card.dataset.category === category) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function openModal(id) {
+        const data = contentData[id];
+        if (!data) return;
+        
+        const modal = document.getElementById('contentModal');
+        const content = document.getElementById('modalContent');
+        
+        content.innerHTML = `
+            <span class="modal-icon">${data.icon}</span>
+            <span class="modal-tag">${data.tag}</span>
+            <h2>${data.title}</h2>
+            <div class="modal-body">${data.body}</div>
+        `;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('contentModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('contentModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+</script>
+
+</body>
+</html>

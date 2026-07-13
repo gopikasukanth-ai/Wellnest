@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Food Swaps | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:3rem 0 2rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .swap-section{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:30px;padding:2.5rem;border:1px solid rgba(255,255,255,0.15);margin-bottom:2rem}
+        
+        .search-box{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+        .search-box input{flex:1;padding:.8rem 1.2rem;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.15);color:#0b2b26;font-size:1rem;font-family:'Inter',sans-serif;min-width:200px}
+        .search-box input::placeholder{color:#0b2b26;opacity:.5}
+        .search-box input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .search-box button{background:#0b2b26;color:white;border:none;padding:.8rem 2rem;border-radius:50px;font-weight:600;font-size:.95rem;cursor:pointer;transition:all .3s}
+        .search-box button:hover{background:#1a4d44;transform:scale(1.02)}
+
+        .quick-swaps{display:flex;gap:.8rem;flex-wrap:wrap;margin-bottom:1.5rem}
+        .quick-swaps span{font-size:.85rem;color:#0b2b26;opacity:.6;margin-right:.5rem}
+        .quick-swaps .chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:.4rem 1.2rem;border-radius:20px;font-size:.8rem;color:#0b2b26;cursor:pointer;transition:all .3s}
+        .quick-swaps .chip:hover{background:rgba(26,122,90,0.15);border-color:#1a7a5a}
+
+        .results-section{display:none;animation:fadeIn 0.6s ease}
+        .results-section.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        .swap-result{background:rgba(255,255,255,0.08);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;border:1px solid rgba(255,255,255,0.08)}
+        .swap-result .bad{display:flex;align-items:center;gap:1rem;padding:1rem;background:rgba(231,76,60,0.08);border-radius:12px;border-left:4px solid #e74c3c}
+        .swap-result .good{display:flex;align-items:center;gap:1rem;padding:1rem;background:rgba(26,122,90,0.08);border-radius:12px;border-left:4px solid #1a7a5a;margin-top:.8rem}
+        .swap-result .icon-large{font-size:2.5rem}
+        .swap-result .food-name{font-size:1.2rem;font-weight:700;color:#0b2b26}
+        .swap-result .food-desc{font-size:.85rem;color:#0b2b26;opacity:.7}
+        .swap-result .arrow{font-size:2rem;color:#1a7a5a;text-align:center;padding:.5rem 0}
+
+        .comparison-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;margin:1.5rem 0;align-items:center}
+        .comparison-item{background:rgba(255,255,255,0.05);border-radius:16px;padding:1.2rem;text-align:center}
+        .comparison-item .label{font-size:.75rem;color:#0b2b26;opacity:.6;text-transform:uppercase;letter-spacing:1px}
+        .comparison-item .value{font-size:1.8rem;font-weight:800;display:block;margin:.3rem 0}
+        .comparison-item .value.bad-color{color:#e74c3c}
+        .comparison-item .value.good-color{color:#1a7a5a}
+        .comparison-item .unit{font-size:.8rem;color:#0b2b26;opacity:.5}
+        .comparison-vs{font-size:1.5rem;font-weight:800;color:#1a7a5a}
+
+        .swap-reason{background:rgba(255,255,255,0.05);border-radius:12px;padding:1rem;margin-top:1rem}
+        .swap-reason h4{font-size:.9rem;color:#0b2b26;margin-bottom:.3rem}
+        .swap-reason p{font-size:.85rem;color:#0b2b26;opacity:.7;line-height:1.6}
+
+        .no-result{text-align:center;padding:2rem;color:#0b2b26;opacity:.6}
+        .no-result .big-icon{font-size:4rem;display:block;margin-bottom:1rem}
+
+        @media(max-width:768px){
+            .comparison-grid{grid-template-columns:1fr;gap:1rem}
+            .comparison-vs{text-align:center}
+            .search-box{flex-direction:column}
+            .search-box button{width:100%}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps" class="active">Food Swaps</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>🥗 <span>Smart Food Swapping</span></h1>
+        <p>Replace unhealthy foods with healthier alternatives. Find smarter choices for better nutrition.</p>
+    </div>
+</section>
+
+<section class="container">
+    <div class="swap-section">
+        <div class="search-box">
+            <input type="text" id="foodSearch" placeholder="Search for a food (e.g., white rice, sugar, pasta)..." onkeyup="if(event.key==='Enter') findSwap()">
+            <button onclick="findSwap()">🔍 Find Swaps</button>
+        </div>
+        <div class="quick-swaps">
+    <span>Quick Swaps:</span>
+    <span class="chip" onclick="quickSwap('White Rice')">🍚 White Rice</span>
+    <span class="chip" onclick="quickSwap('Sugar')">🍬 Sugar</span>
+    <span class="chip" onclick="quickSwap('Pasta')">🍝 Pasta</span>
+    <span class="chip" onclick="quickSwap('White Bread')">🍞 White Bread</span>
+    <span class="chip" onclick="quickSwap('Butter')">🧈 Butter</span>
+    <span class="chip" onclick="quickSwap('Soda')">🥤 Soda</span>
+    <span class="chip" onclick="quickSwap('Potato Chips')">🥔 Chips</span>
+    <span class="chip" onclick="quickSwap('Ice Cream')">🍦 Ice Cream</span>
+    <span class="chip" onclick="quickSwap('Biryani')">🍛 Biryani</span>
+    <span class="chip" onclick="quickSwap('Paratha')">🫓 Paratha</span>
+</div>
+
+        <div class="results-section" id="results">
+            <div id="swapContent"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Complete Food Swap Database
+    // Complete Food Swap Database - 50+ Foods
+const swapDatabase = {
+    // ===== GRAINS & CARBS =====
+    'white rice': {
+        bad: { name: 'White Rice', emoji: '🍚', calories: 206, protein: 4.3, carbs: 45, fats: 0.4 },
+        good: { name: 'Brown Rice', emoji: '🍚', calories: 216, protein: 5, carbs: 45, fats: 1.8 },
+        reason: 'Brown rice has more fiber, vitamins, and minerals. It helps with digestion and keeps you full longer.',
+        benefits: ['More fiber', 'Better digestion', 'Lower glycemic index']
+    },
+    'brown rice': {
+        bad: { name: 'White Rice', emoji: '🍚', calories: 206, protein: 4.3, carbs: 45, fats: 0.4 },
+        good: { name: 'Brown Rice', emoji: '🍚', calories: 216, protein: 5, carbs: 45, fats: 1.8 },
+        reason: 'Brown rice has more fiber, vitamins, and minerals. It helps with digestion and keeps you full longer.',
+        benefits: ['More fiber', 'Better digestion', 'Lower glycemic index']
+    },
+    'quinoa': {
+        bad: { name: 'White Rice', emoji: '🍚', calories: 206, protein: 4.3, carbs: 45, fats: 0.4 },
+        good: { name: 'Quinoa', emoji: '🌾', calories: 222, protein: 8, carbs: 39, fats: 3.6 },
+        reason: 'Quinoa is a complete protein with all 9 essential amino acids. It\'s gluten-free and rich in fiber.',
+        benefits: ['Complete protein', 'Gluten-free', 'Rich in minerals']
+    },
+    'white pasta': {
+        bad: { name: 'Regular Pasta', emoji: '🍝', calories: 220, protein: 8, carbs: 43, fats: 1.3 },
+        good: { name: 'Whole Wheat Pasta', emoji: '🍝', calories: 174, protein: 7.5, carbs: 37, fats: 2 },
+        reason: 'Whole wheat pasta has more fiber, protein, and nutrients. It helps control blood sugar and keeps you full.',
+        benefits: ['More fiber', 'Better blood sugar', 'Keeps you full']
+    },
+    'pasta': {
+        bad: { name: 'Regular Pasta', emoji: '🍝', calories: 220, protein: 8, carbs: 43, fats: 1.3 },
+        good: { name: 'Zucchini Noodles', emoji: '🥒', calories: 17, protein: 1.3, carbs: 3, fats: 0.3 },
+        reason: 'Zucchini noodles are extremely low in calories and carbs. They\'re a great way to enjoy pasta dishes without the carbs.',
+        benefits: ['Low calorie', 'Low carb', 'Rich in vitamins']
+    },
+    'noodles': {
+        bad: { name: 'Regular Noodles', emoji: '🍜', calories: 240, protein: 6, carbs: 40, fats: 6 },
+        good: { name: 'Zucchini Noodles', emoji: '🥒', calories: 17, protein: 1.3, carbs: 3, fats: 0.3 },
+        reason: 'Zucchini noodles are extremely low in calories and carbs. They\'re a great way to enjoy noodle dishes without the carbs.',
+        benefits: ['Low calorie', 'Low carb', 'Rich in vitamins']
+    },
+    'maida': {
+        bad: { name: 'Maida (White Flour)', emoji: '🌾', calories: 364, protein: 10, carbs: 76, fats: 1 },
+        good: { name: 'Whole Wheat Flour', emoji: '🌾', calories: 340, protein: 13, carbs: 72, fats: 2.5 },
+        reason: 'Whole wheat flour has more fiber, protein, and nutrients. It\'s better for heart health and digestion.',
+        benefits: ['High fiber', 'Better for heart', 'More nutrients']
+    },
+    'white flour': {
+        bad: { name: 'Maida (White Flour)', emoji: '🌾', calories: 364, protein: 10, carbs: 76, fats: 1 },
+        good: { name: 'Whole Wheat Flour', emoji: '🌾', calories: 340, protein: 13, carbs: 72, fats: 2.5 },
+        reason: 'Whole wheat flour has more fiber, protein, and nutrients. It\'s better for heart health and digestion.',
+        benefits: ['High fiber', 'Better for heart', 'More nutrients']
+    },
+    'white bread': {
+        bad: { name: 'White Bread', emoji: '🍞', calories: 265, protein: 9, carbs: 49, fats: 3.2 },
+        good: { name: 'Whole Wheat Bread', emoji: '🍞', calories: 247, protein: 13, carbs: 41, fats: 4.2 },
+        reason: 'Whole wheat bread has more fiber, protein, and essential nutrients. It\'s better for heart health and digestion.',
+        benefits: ['High in fiber', 'Better for heart', 'More nutrients']
+    },
+    'bread': {
+        bad: { name: 'White Bread', emoji: '🍞', calories: 265, protein: 9, carbs: 49, fats: 3.2 },
+        good: { name: 'Multigrain Bread', emoji: '🍞', calories: 240, protein: 12, carbs: 40, fats: 4 },
+        reason: 'Multigrain bread contains various grains and seeds, providing more fiber, protein, and essential nutrients.',
+        benefits: ['More fiber', 'More nutrients', 'Better taste']
+
+    },
+    'white bread': {
+        bad: { name: 'White Bread', emoji: '🍞', calories: 265, protein: 9, carbs: 49, fats: 3.2 },
+        good: { name: 'Ragi Roti', emoji: '🌾', calories: 180, protein: 7, carbs: 35, fats: 2 },
+        reason: 'Ragi is rich in calcium, iron, and fiber. It\'s excellent for bone health and digestion.',
+        benefits: ['Rich in calcium', 'High iron', 'Gluten-free']
+    },
+
+    // ===== SWEETENERS =====
+    'sugar': {
+        bad: { name: 'White Sugar', emoji: '🍬', calories: 387, protein: 0, carbs: 100, fats: 0 },
+        good: { name: 'Jaggery', emoji: '🟤', calories: 383, protein: 0.4, carbs: 95, fats: 0.1 },
+        reason: 'Jaggery contains iron, magnesium, and antioxidants. It\'s unrefined and retains natural nutrients.',
+        benefits: ['Rich in iron', 'Natural sweetener', 'Boosts immunity']
+    },
+    'jaggery': {
+        bad: { name: 'White Sugar', emoji: '🍬', calories: 387, protein: 0, carbs: 100, fats: 0 },
+        good: { name: 'Jaggery', emoji: '🟤', calories: 383, protein: 0.4, carbs: 95, fats: 0.1 },
+        reason: 'Jaggery contains iron, magnesium, and antioxidants. It\'s unrefined and retains natural nutrients.',
+        benefits: ['Rich in iron', 'Natural sweetener', 'Boosts immunity']
+    },
+    'honey': {
+        bad: { name: 'White Sugar', emoji: '🍬', calories: 387, protein: 0, carbs: 100, fats: 0 },
+        good: { name: 'Honey', emoji: '🍯', calories: 304, protein: 0.3, carbs: 82, fats: 0 },
+        reason: 'Honey has antibacterial properties and contains antioxidants. It\'s a natural sweetener with health benefits.',
+        benefits: ['Antibacterial', 'Antioxidants', 'Natural']
+    },
+    'stevia': {
+        bad: { name: 'White Sugar', emoji: '🍬', calories: 387, protein: 0, carbs: 100, fats: 0 },
+        good: { name: 'Stevia', emoji: '🌿', calories: 0, protein: 0, carbs: 0, fats: 0 },
+        reason: 'Stevia is a zero-calorie natural sweetener derived from a plant. It doesn\'t affect blood sugar levels.',
+        benefits: ['Zero calories', 'Natural', 'Safe for diabetes']
+    },
+    'dates': {
+        bad: { name: 'White Sugar', emoji: '🍬', calories: 387, protein: 0, carbs: 100, fats: 0 },
+        good: { name: 'Dates', emoji: '🌴', calories: 282, protein: 2.5, carbs: 75, fats: 0.4 },
+        reason: 'Dates are naturally sweet and packed with fiber, potassium, and magnesium. They\'re a healthy alternative to sugar.',
+        benefits: ['High fiber', 'Rich in minerals', 'Natural']
+    },
+
+    // ===== FATS & OILS =====
+    'butter': {
+        bad: { name: 'Butter', emoji: '🧈', calories: 717, protein: 0.9, carbs: 0.1, fats: 81 },
+        good: { name: 'Ghee', emoji: '🧈', calories: 900, protein: 0, carbs: 0, fats: 100 },
+        reason: 'Ghee is rich in healthy fats, vitamins A, D, E, K. It\'s better for cooking and digestion.',
+        benefits: ['Rich in vitamins', 'Better for cooking', 'Good for digestion']
+    },
+    'ghee': {
+        bad: { name: 'Butter', emoji: '🧈', calories: 717, protein: 0.9, carbs: 0.1, fats: 81 },
+        good: { name: 'Ghee', emoji: '🧈', calories: 900, protein: 0, carbs: 0, fats: 100 },
+        reason: 'Ghee is rich in healthy fats, vitamins A, D, E, K. It\'s better for cooking and digestion.',
+        benefits: ['Rich in vitamins', 'Better for cooking', 'Good for digestion']
+    },
+    'cooking oil': {
+        bad: { name: 'Refined Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        good: { name: 'Cold-Pressed Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        reason: 'Cold-pressed oils retain antioxidants and nutrients. They\'re less processed and healthier for cooking.',
+        benefits: ['Retains nutrients', 'Antioxidants', 'Less processed']
+    },
+    'refined oil': {
+        bad: { name: 'Refined Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        good: { name: 'Cold-Pressed Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        reason: 'Cold-pressed oils retain antioxidants and nutrients. They\'re less processed and healthier for cooking.',
+        benefits: ['Retains nutrients', 'Antioxidants', 'Less processed']
+    },
+    'sunflower oil': {
+        bad: { name: 'Sunflower Oil', emoji: '🌻', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        good: { name: 'Olive Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100 },
+        reason: 'Olive oil is rich in monounsaturated fats and antioxidants. It\'s heart-healthy and good for cooking.',
+        benefits: ['Heart-healthy', 'Antioxidants', 'Good for cooking']
+    },
+
+    // ===== DRINKS =====
+    'soda': {
+        bad: { name: 'Soda', emoji: '🥤', calories: 140, protein: 0, carbs: 39, fats: 0 },
+        good: { name: 'Infused Water', emoji: '💧', calories: 5, protein: 0, carbs: 1, fats: 0 },
+        reason: 'Infused water is hydrating without sugar. Add fruits, herbs for natural flavor without calories.',
+        benefits: ['Zero sugar', 'Hydrating', 'Natural flavor']
+    },
+    'cold drink': {
+        bad: { name: 'Soda', emoji: '🥤', calories: 140, protein: 0, carbs: 39, fats: 0 },
+        good: { name: 'Infused Water', emoji: '💧', calories: 5, protein: 0, carbs: 1, fats: 0 },
+        reason: 'Infused water is hydrating without sugar. Add fruits, herbs for natural flavor without calories.',
+        benefits: ['Zero sugar', 'Hydrating', 'Natural flavor']
+    },
+    'coke': {
+        bad: { name: 'Coca Cola', emoji: '🥤', calories: 140, protein: 0, carbs: 39, fats: 0 },
+        good: { name: 'Coconut Water', emoji: '🥥', calories: 46, protein: 0.9, carbs: 9, fats: 0 },
+        reason: 'Coconut water is natural, hydrating, and rich in electrolytes. It\'s perfect for hydration without artificial sugar.',
+        benefits: ['Natural', 'Rich in electrolytes', 'Hydrating']
+    },
+    'coffee': {
+        bad: { name: 'Coffee with Sugar', emoji: '☕', calories: 100, protein: 0, carbs: 20, fats: 0 },
+        good: { name: 'Black Coffee', emoji: '☕', calories: 2, protein: 0, carbs: 0, fats: 0 },
+        reason: 'Black coffee has almost zero calories and contains antioxidants. It can boost metabolism without added sugar.',
+        benefits: ['Zero calories', 'Antioxidants', 'Boosts metabolism']
+    },
+    'tea': {
+        bad: { name: 'Tea with Sugar', emoji: '☕', calories: 80, protein: 0, carbs: 16, fats: 0 },
+        good: { name: 'Green Tea', emoji: '🍵', calories: 2, protein: 0, carbs: 0, fats: 0 },
+        reason: 'Green tea is rich in antioxidants and has almost zero calories. It\'s great for metabolism and overall health.',
+        benefits: ['Antioxidants', 'Zero calories', 'Boosts metabolism']
+    },
+    'milk': {
+        bad: { name: 'Full Cream Milk', emoji: '🥛', calories: 150, protein: 8, carbs: 12, fats: 8 },
+        good: { name: 'Skimmed Milk', emoji: '🥛', calories: 83, protein: 8.3, carbs: 12, fats: 0.2 },
+        reason: 'Skimmed milk has all the nutrition of full cream milk but with much less fat. Great for weight management.',
+        benefits: ['Low fat', 'High protein', 'Same nutrients']
+    },
+
+    // ===== SNACKS =====
+    'potato chips': {
+        bad: { name: 'Potato Chips', emoji: '🥔', calories: 536, protein: 7, carbs: 53, fats: 34 },
+        good: { name: 'Baked Sweet Potato Chips', emoji: '🍠', calories: 150, protein: 2, carbs: 24, fats: 5 },
+        reason: 'Baked sweet potato chips are lower in fat and calories. They contain more vitamins and fiber.',
+        benefits: ['Lower fat', 'More vitamins', 'High fiber']
+    },
+    'chips': {
+        bad: { name: 'Potato Chips', emoji: '🥔', calories: 536, protein: 7, carbs: 53, fats: 34 },
+        good: { name: 'Roasted Chickpeas', emoji: '🫘', calories: 140, protein: 8, carbs: 22, fats: 3 },
+        reason: 'Roasted chickpeas are high in protein and fiber. They\'re a healthier alternative to chips with great crunch.',
+        benefits: ['High protein', 'High fiber', 'Healthy crunch']
+    },
+    'namkeen': {
+        bad: { name: 'Namkeen (Fried Snack)', emoji: '🥨', calories: 450, protein: 8, carbs: 50, fats: 25 },
+        good: { name: 'Roasted Makhana', emoji: '🌰', calories: 120, protein: 4, carbs: 20, fats: 2 },
+        reason: 'Roasted makhana (fox nuts) are low in calories and high in antioxidants. They\'re a healthy traditional Indian snack.',
+        benefits: ['Low calorie', 'High antioxidants', 'Traditional snack']
+    },
+    'biscuit': {
+        bad: { name: 'Biscuit/Cookie', emoji: '🍪', calories: 250, protein: 3, carbs: 35, fats: 12 },
+        good: { name: 'Oats Cookie', emoji: '🍪', calories: 180, protein: 5, carbs: 28, fats: 7 },
+        reason: 'Oats cookies are healthier with more fiber and nutrients. They\'re great for a guilt-free snack.',
+        benefits: ['More fiber', 'Less sugar', 'Healthy snack']
+    },
+
+    // ===== DESSERTS =====
+    'ice cream': {
+        bad: { name: 'Ice Cream', emoji: '🍦', calories: 207, protein: 3.5, carbs: 24, fats: 11 },
+        good: { name: 'Frozen Yogurt', emoji: '🍦', calories: 100, protein: 10, carbs: 18, fats: 2 },
+        reason: 'Frozen yogurt is lower in fat and calories. It has probiotics that are good for gut health.',
+        benefits: ['Lower fat', 'Probiotics', 'Good for gut health']
+    },
+    'cake': {
+        bad: { name: 'Regular Cake', emoji: '🍰', calories: 350, protein: 5, carbs: 50, fats: 15 },
+        good: { name: 'Banana Cake', emoji: '🍌', calories: 200, protein: 6, carbs: 35, fats: 6 },
+        reason: 'Banana cake uses natural sweeteners and has more nutrients. It\'s a healthier dessert option.',
+        benefits: ['Natural sweetener', 'More nutrients', 'Less fat']
+    },
+    'chocolate': {
+        bad: { name: 'Milk Chocolate', emoji: '🍫', calories: 540, protein: 7, carbs: 60, fats: 30 },
+        good: { name: 'Dark Chocolate', emoji: '🍫', calories: 250, protein: 4, carbs: 20, fats: 18 },
+        reason: 'Dark chocolate has more cocoa and less sugar. It\'s rich in antioxidants and better for health.',
+        benefits: ['Rich in antioxidants', 'Less sugar', 'Heart-healthy']
+    },
+
+    // ===== MEAT & PROTEIN =====
+    'red meat': {
+        bad: { name: 'Red Meat (Beef)', emoji: '🥩', calories: 250, protein: 26, carbs: 0, fats: 16 },
+        good: { name: 'Chicken Breast', emoji: '🍗', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+        reason: 'Chicken breast is leaner with less fat and more protein. It\'s better for heart health and weight management.',
+        benefits: ['Lean protein', 'Low fat', 'Heart-healthy']
+    },
+    'beef': {
+        bad: { name: 'Red Meat (Beef)', emoji: '🥩', calories: 250, protein: 26, carbs: 0, fats: 16 },
+        good: { name: 'Chicken Breast', emoji: '🍗', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+        reason: 'Chicken breast is leaner with less fat and more protein. It\'s better for heart health and weight management.',
+        benefits: ['Lean protein', 'Low fat', 'Heart-healthy']
+    },
+    'lamb': {
+        bad: { name: 'Lamb Meat', emoji: '🍖', calories: 294, protein: 25, carbs: 0, fats: 21 },
+        good: { name: 'Chicken Breast', emoji: '🍗', calories: 165, protein: 31, carbs: 0, fats: 3.6 },
+        reason: 'Chicken breast is leaner and lower in fat. It\'s a healthier choice for everyday meals.',
+        benefits: ['Lean protein', 'Low fat', 'Heart-healthy']
+    },
+    'paneer': {
+        bad: { name: 'Fried Paneer', emoji: '🧀', calories: 350, protein: 18, carbs: 10, fats: 28 },
+        good: { name: 'Grilled Paneer', emoji: '🧀', calories: 220, protein: 18, carbs: 6, fats: 15 },
+        reason: 'Grilled paneer has less oil and fewer calories. It retains all the protein benefits without extra fat.',
+        benefits: ['Less oil', 'Same protein', 'Lower calories']
+    },
+    'egg': {
+        bad: { name: 'Fried Egg', emoji: '🍳', calories: 90, protein: 6, carbs: 1, fats: 7 },
+        good: { name: 'Boiled Egg', emoji: '🥚', calories: 78, protein: 6, carbs: 0.6, fats: 5 },
+        reason: 'Boiled eggs are lower in fat and calories. They\'re a simple, healthy protein source.',
+        benefits: ['Lower fat', 'Simple', 'Healthy protein']
+    },
+
+    // ===== VEGETABLES =====
+    'potato': {
+        bad: { name: 'Fried Potato', emoji: '🍟', calories: 312, protein: 3.4, carbs: 41, fats: 15 },
+        good: { name: 'Baked Potato', emoji: '🥔', calories: 163, protein: 4.3, carbs: 37, fats: 0.2 },
+        reason: 'Baked potatoes are much lower in fat and calories than fried. They retain more nutrients.',
+        benefits: ['Low fat', 'More nutrients', 'Healthy']
+    },
+    'french fries': {
+        bad: { name: 'French Fries', emoji: '🍟', calories: 312, protein: 3.4, carbs: 41, fats: 15 },
+        good: { name: 'Sweet Potato Fries', emoji: '🍠', calories: 180, protein: 2, carbs: 27, fats: 7 },
+        reason: 'Sweet potato fries have more vitamins and fiber. They\'re a healthier alternative with natural sweetness.',
+        benefits: ['More vitamins', 'High fiber', 'Natural sweetness']
+    },
+
+    // ===== INDIAN SPECIFIC =====
+    'poori': {
+        bad: { name: 'Poori (Fried Bread)', emoji: '🥯', calories: 300, protein: 6, carbs: 40, fats: 14 },
+        good: { name: 'Chapati/Roti', emoji: '🫓', calories: 120, protein: 4, carbs: 24, fats: 1.5 },
+        reason: 'Chapati is much lower in fat and calories than poori. It\'s a healthier everyday Indian bread.',
+        benefits: ['Low fat', 'Healthy', 'Everyday food']
+    },
+    'paratha': {
+        bad: { name: 'Aloo Paratha (with Ghee)', emoji: '🫓', calories: 350, protein: 8, carbs: 45, fats: 16 },
+        good: { name: 'Plain Paratha', emoji: '🫓', calories: 180, protein: 5, carbs: 28, fats: 6 },
+        reason: 'Plain paratha has less oil and fewer calories. It\'s a healthier option for daily meals.',
+        benefits: ['Less oil', 'Lower calories', 'Healthy']
+    },
+    'biryani': {
+        bad: { name: 'Chicken Biryani', emoji: '🍛', calories: 350, protein: 12, carbs: 50, fats: 12 },
+        good: { name: 'Vegetable Pulao', emoji: '🍛', calories: 250, protein: 6, carbs: 40, fats: 8 },
+        reason: 'Vegetable pulao has less fat and more vegetables. It\'s a lighter, healthier alternative to biryani.',
+        benefits: ['More vegetables', 'Less fat', 'Lighter']
+    },
+    'dosai': {
+        bad: { name: 'Masala Dosa', emoji: '🥞', calories: 250, protein: 6, carbs: 35, fats: 10 },
+        good: { name: 'Plain Dosa', emoji: '🥞', calories: 133, protein: 3.5, carbs: 26, fats: 2 },
+        reason: 'Plain dosa has much less oil and fewer calories. It\'s a healthier South Indian breakfast option.',
+        benefits: ['Less oil', 'Lower calories', 'Healthy']
+    },
+    'idli': {
+        bad: { name: 'Fried Idli', emoji: '🥮', calories: 150, protein: 3, carbs: 20, fats: 7 },
+        good: { name: 'Steamed Idli', emoji: '🥮', calories: 40, protein: 1.5, carbs: 8, fats: 0.5 },
+        reason: 'Steamed idli is low in fat and calories. It\'s fermented and good for digestion.',
+        benefits: ['Low fat', 'Fermented', 'Good for digestion']
+    }
+};
+
+    function findSwap() {
+        const input = document.getElementById('foodSearch');
+        const query = input.value.trim().toLowerCase();
+        
+        if (!query) {
+            alert('Please type a food to search for swaps!');
+            return;
+        }
+        
+        // Find matching swap
+        let match = null;
+        let matchKey = null;
+        
+        for (const [key, value] of Object.entries(swapDatabase)) {
+            if (key.includes(query) || query.includes(key)) {
+                match = value;
+                matchKey = key;
+                break;
+            }
+        }
+        
+        const results = document.getElementById('results');
+        const content = document.getElementById('swapContent');
+        
+        if (match) {
+            results.classList.add('active');
+            content.innerHTML = createSwapHTML(matchKey, match);
+        } else {
+            results.classList.add('active');
+            content.innerHTML = `
+                <div class="no-result">
+                    <span class="big-icon">🔍</span>
+                    <h3>No swaps found for "${input.value}"</h3>
+                    <p>Try searching for: White Rice, Sugar, Pasta, White Bread, Butter, Soda, Potato Chips</p>
+                </div>
+            `;
+        }
+    }
+
+    function quickSwap(food) {
+        document.getElementById('foodSearch').value = food;
+        findSwap();
+    }
+
+    function createSwapHTML(key, data) {
+        const bad = data.bad;
+        const good = data.good;
+        
+        const calorieDiff = bad.calories - good.calories;
+        const proteinDiff = (good.protein - bad.protein).toFixed(1);
+        const carbDiff = (bad.carbs - good.carbs).toFixed(1);
+        const fatDiff = (bad.fats - good.fats).toFixed(1);
+        
+        return `
+            <div class="swap-result">
+                <div class="bad">
+                    <span class="icon-large">${bad.emoji}</span>
+                    <div>
+                        <div class="food-name">❌ ${bad.name}</div>
+                        <div class="food-desc">${bad.calories} kcal • ${bad.carbs}g carbs • ${bad.protein}g protein</div>
+                    </div>
+                </div>
+                
+                <div class="arrow">⬇️ SWAP TO ⬇️</div>
+                
+                <div class="good">
+                    <span class="icon-large">${good.emoji}</span>
+                    <div>
+                        <div class="food-name">✅ ${good.name}</div>
+                        <div class="food-desc">${good.calories} kcal • ${good.carbs}g carbs • ${good.protein}g protein</div>
+                    </div>
+                </div>
+                
+                <div class="comparison-grid">
+                    <div class="comparison-item">
+                        <span class="label">Calories</span>
+                        <span class="value bad-color">${bad.calories}</span>
+                        <span class="unit">kcal</span>
+                    </div>
+                    <div class="comparison-vs">VS</div>
+                    <div class="comparison-item">
+                        <span class="label">Calories</span>
+                        <span class="value good-color">${good.calories}</span>
+                        <span class="unit">kcal</span>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <span class="label">Carbs</span>
+                        <span class="value bad-color">${bad.carbs}g</span>
+                        <span class="unit">carbohydrates</span>
+                    </div>
+                    <div class="comparison-vs">VS</div>
+                    <div class="comparison-item">
+                        <span class="label">Carbs</span>
+                        <span class="value good-color">${good.carbs}g</span>
+                        <span class="unit">carbohydrates</span>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <span class="label">Protein</span>
+                        <span class="value bad-color">${bad.protein}g</span>
+                        <span class="unit">protein</span>
+                    </div>
+                    <div class="comparison-vs">VS</div>
+                    <div class="comparison-item">
+                        <span class="label">Protein</span>
+                        <span class="value good-color">${good.protein}g</span>
+                        <span class="unit">protein</span>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <span class="label">Fats</span>
+                        <span class="value bad-color">${bad.fats}g</span>
+                        <span class="unit">fat</span>
+                    </div>
+                    <div class="comparison-vs">VS</div>
+                    <div class="comparison-item">
+                        <span class="label">Fats</span>
+                        <span class="value good-color">${good.fats}g</span>
+                        <span class="unit">fat</span>
+                    </div>
+                </div>
+                
+                <div class="swap-reason">
+                    <h4>💡 Why swap to ${good.name}?</h4>
+                    <p>${data.reason}</p>
+                    <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+                        ${data.benefits.map(b => `<span style="background:rgba(26,122,90,0.1);color:#1a7a5a;padding:.2rem .8rem;border-radius:20px;font-size:.75rem;font-weight:600;">✓ ${b}</span>`).join('')}
+                    </div>
+                    <div style="margin-top:.8rem;font-size:.85rem;color:#0b2b26;opacity:.6;">
+                        ${calorieDiff > 0 ? `🔥 Saves ${calorieDiff} calories per serving` : ''}
+                        ${proteinDiff > 0 ? ` 💪 +${proteinDiff}g more protein` : ''}
+                        ${carbDiff > 0 ? ` 🌾 ${carbDiff}g less carbs` : ''}
+                        ${fatDiff > 0 ? ` 🧈 ${fatDiff}g less fat` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>

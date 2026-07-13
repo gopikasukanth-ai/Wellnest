@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Specialized Features | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:2.5rem 0 1.5rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:2rem}
+        .feature-card{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);border-radius:20px;padding:1.8rem;border:1px solid rgba(255,255,255,0.08);transition:all .3s;cursor:pointer}
+        .feature-card:hover{transform:translateY(-5px);box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+        .feature-card .feature-icon{font-size:2.8rem;display:block;margin-bottom:.5rem}
+        .feature-card .feature-status{display:inline-block;padding:.1rem .8rem;border-radius:50px;font-size:.7rem;font-weight:600;background:rgba(26,122,90,0.1);color:#1a7a5a;margin-bottom:.5rem}
+        .feature-card .feature-status.inactive{background:rgba(231,76,60,0.1);color:#e74c3c}
+        .feature-card h4{font-size:1.1rem;color:#0b2b26;margin-bottom:.3rem}
+        .feature-card p{font-size:.85rem;color:#0b2b26;opacity:.7;line-height:1.5}
+        .feature-card .feature-toggle{display:flex;align-items:center;gap:.5rem;margin-top:.8rem}
+
+        .toggle-switch{position:relative;width:50px;height:28px;background:rgba(255,255,255,0.15);border-radius:50px;cursor:pointer;transition:all .3s;border:2px solid rgba(255,255,255,0.1)}
+        .toggle-switch.active{background:#1a7a5a;border-color:#1a7a5a}
+        .toggle-switch .toggle-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;background:white;border-radius:50%;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+        .toggle-switch.active .toggle-knob{left:24px}
+
+        .feature-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:1000;justify-content:center;align-items:center}
+        .feature-modal.active{display:flex}
+        .feature-modal .modal-content{background:rgba(255,255,255,0.95);border-radius:30px;padding:2.5rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;position:relative;border:1px solid rgba(255,255,255,0.2)}
+        .feature-modal .close-btn{position:absolute;top:15px;right:20px;font-size:2rem;color:#0b2b26;cursor:pointer;background:none;border:none;transition:all .3s}
+        .feature-modal .close-btn:hover{transform:rotate(90deg)}
+        .feature-modal .modal-icon{font-size:3rem;display:block;margin-bottom:.5rem}
+        .feature-modal .modal-tag{display:inline-block;padding:.1rem .8rem;border-radius:50px;font-size:.7rem;font-weight:600;background:rgba(26,122,90,0.1);color:#1a7a5a;margin-bottom:.5rem}
+        .feature-modal h2{font-size:1.8rem;color:#0b2b26;margin-bottom:.5rem}
+        .feature-modal .modal-body{color:#0b2b26;opacity:.8;line-height:1.8;font-size:.95rem}
+        .feature-modal .modal-body ul{margin:.5rem 0;padding-left:1.5rem}
+        .feature-modal .modal-body ul li{margin:.3rem 0}
+
+        .banner-section{background:rgba(255,255,255,0.06);border-radius:20px;padding:2rem;border:1px solid rgba(255,255,255,0.08);text-align:center;margin-bottom:2rem}
+        .banner-section h2{font-size:1.5rem;font-weight:700;color:#0b2b26;margin-bottom:.5rem}
+        .banner-section p{color:#0b2b26;opacity:.7;font-size:.95rem}
+        .banner-section .banner-icon{font-size:3rem;display:block;margin-bottom:.5rem}
+
+        @media(max-width:1024px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:768px){
+            .features-grid{grid-template-columns:1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+            .feature-modal .modal-content{padding:1.5rem}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/food-swaps">Food Swaps</a>
+                <a href="/dietary-preferences">Dietary & Health</a>
+                <a href="/nutrition-chat">Nutrition Chat</a>
+                <a href="/tracking-analytics">Tracking</a>
+                <a href="/nutrition-content">Learn</a>
+                <a href="/specialized-features" class="active">Specialized</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>🚀 <span>Specialized</span> & Extra Features</h1>
+        <p>Explore advanced features like DNA-based nutrition, blood test analysis, intermittent fasting, and more.</p>
+    </div>
+</section>
+
+<section class="container">
+    <!-- Banner -->
+    <div class="banner-section">
+        <span class="banner-icon">✨</span>
+        <h2>Premium Features for Advanced Nutrition Tracking</h2>
+        <p>Unlock the full potential of WELLNEST with these specialized features. Click any card to learn more!</p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="features-grid">
+        <!-- DNA-Based Nutrition -->
+        <div class="feature-card" onclick="openFeatureModal('dna')">
+            <span class="feature-icon">🧬</span>
+            <span class="feature-status">Premium</span>
+            <h4>DNA-Based Nutrition</h4>
+            <p>Get personalized nutrition recommendations based on your genetic profile.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Blood Test Analysis -->
+        <div class="feature-card" onclick="openFeatureModal('blood')">
+            <span class="feature-icon">🩸</span>
+            <span class="feature-status">Premium</span>
+            <h4>Blood Test Analysis</h4>
+            <p>Upload your lab reports and get personalized nutrition recommendations.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Intermittent Fasting -->
+        <div class="feature-card" onclick="openFeatureModal('fasting')">
+            <span class="feature-icon">🌙</span>
+            <span class="feature-status">Available</span>
+            <h4>Intermittent Fasting</h4>
+            <p>Track your fasting schedules and get meal timing recommendations.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Dark Mode -->
+        <div class="feature-card" onclick="openFeatureModal('darkmode')">
+            <span class="feature-icon">🌙</span>
+            <span class="feature-status">Available</span>
+            <h4>Dark Mode</h4>
+            <p>Switch between light and dark themes for comfortable viewing.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Push Notifications -->
+        <div class="feature-card" onclick="openFeatureModal('notifications')">
+            <span class="feature-icon">📱</span>
+            <span class="feature-status">Available</span>
+            <h4>Smart Notifications</h4>
+            <p>Get reminders for meals, water intake, and health checkups.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Family Plans -->
+        <div class="feature-card" onclick="openFeatureModal('family')">
+            <span class="feature-icon">👨‍👩‍👧‍👦</span>
+            <span class="feature-status">Premium</span>
+            <h4>Family Plans</h4>
+            <p>Manage nutrition for your entire family from one account.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Community Support -->
+        <div class="feature-card" onclick="openFeatureModal('community')">
+            <span class="feature-icon">🤝</span>
+            <span class="feature-status">Available</span>
+            <h4>Community Support</h4>
+            <p>Connect with others on the same health journey.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Auto-Sync -->
+        <div class="feature-card" onclick="openFeatureModal('sync')">
+            <span class="feature-icon">🔄</span>
+            <span class="feature-status">Available</span>
+            <h4>Auto-Sync</h4>
+            <p>Sync your data across all your devices seamlessly.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+
+        <!-- Multi-Language -->
+        <div class="feature-card" onclick="openFeatureModal('language')">
+            <span class="feature-icon">🌍</span>
+            <span class="feature-status">Available</span>
+            <h4>Multi-Language Support</h4>
+            <p>Available in English, Hindi, Spanish, French, Tamil, Telugu, and more.</p>
+            <div class="feature-toggle">
+                <span style="font-size:.8rem;opacity:.5;">Click to learn more</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Feature Modal -->
+<div class="feature-modal" id="featureModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeFeatureModal()">✕</button>
+        <div id="featureModalContent">
+            <!-- Content will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const featureData = {
+        'dna': {
+            icon: '🧬',
+            tag: 'Premium Feature',
+            title: 'DNA-Based Nutrition',
+            body: `
+                <h3>Personalized Nutrition Based on Your DNA</h3>
+                <p>Your genes play a crucial role in how your body responds to different foods. DNA-based nutrition helps you:</p>
+                <ul>
+                    <li><strong>🧬 Identify genetic predispositions</strong> - Understand your body's unique needs</li>
+                    <li><strong>🥗 Get personalized food recommendations</strong> - Based on your genetic profile</li>
+                    <li><strong>💪 Optimize nutrient absorption</strong> - Know which nutrients your body needs most</li>
+                    <li><strong>⚖️ Manage weight effectively</strong> - Based on your genetic metabolism</li>
+                    <li><strong>🛡️ Prevent lifestyle diseases</strong> - With personalized preventive nutrition</li>
+                </ul>
+                <p><strong>💡 How it works:</strong> Upload your DNA test report and get instant personalized recommendations.</p>
+            `
+        },
+        'blood': {
+            icon: '🩸',
+            tag: 'Premium Feature',
+            title: 'Blood Test Analysis',
+            body: `
+                <h3>Analyze Your Blood Reports for Better Health</h3>
+                <p>Upload your lab reports and get personalized nutrition recommendations based on your blood test results.</p>
+                <ul>
+                    <li><strong>🩸 Identify deficiencies</strong> - Vitamin D, B12, Iron, and more</li>
+                    <li><strong>📊 Understand your markers</strong> - Cholesterol, blood sugar, thyroid</li>
+                    <li><strong>🥗 Get food recommendations</strong> - Foods that help improve your numbers</li>
+                    <li><strong>📈 Track improvement</strong> - Monitor progress over time</li>
+                    <li><strong>🩺 Share with doctors</strong> - Easy sharing with healthcare providers</li>
+                </ul>
+                <p><strong>💡 How it works:</strong> Upload your blood test report and get instant analysis and recommendations.</p>
+            `
+        },
+        'fasting': {
+            icon: '🌙',
+            tag: 'Available Feature',
+            title: 'Intermittent Fasting Tracker',
+            body: `
+                <h3>Track Your Fasting Schedule</h3>
+                <p>Intermittent fasting is a powerful tool for health and weight management. Here's how to use it:</p>
+                <ul>
+                    <li><strong>⏰ Fasting Schedules</strong> - 16:8, 18:6, 20:4, OMAD</li>
+                    <li><strong>🍽️ Meal Timing</strong> - When to eat and when to fast</li>
+                    <li><strong>💧 Hydration Reminders</strong> - Stay hydrated during fasting</li>
+                    <li><strong>📊 Track Progress</strong> - Monitor your fasting journey</li>
+                    <li><strong>💡 Tips & Tricks</strong> - Make fasting easier and more effective</li>
+                </ul>
+                <p><strong>💡 Popular schedules:</strong> 16:8 (16 hours fasting, 8 hours eating) is the most common.</p>
+            `
+        },
+        'darkmode': {
+            icon: '🌙',
+            tag: 'Available Feature',
+            title: 'Dark Mode',
+            body: `
+                <h3>Switch Between Light and Dark Themes</h3>
+                <p>Enjoy a comfortable viewing experience in any lighting condition.</p>
+                <ul>
+                    <li><strong>🌙 Eye-friendly</strong> - Reduces eye strain in low light</li>
+                    <li><strong>🔋 Save battery</strong> - On OLED/AMOLED screens</li>
+                    <li><strong>🎨 Easy toggle</strong> - Switch with a single click</li>
+                    <li><strong>📱 Auto mode</strong> - Based on your device settings</li>
+                    <li><strong>💡 Customizable</strong> - Choose your preferred theme</li>
+                </ul>
+                <p><strong>💡 Click the toggle switch to enable/disable dark mode.</strong></p>
+            `
+        },
+        'notifications': {
+            icon: '📱',
+            tag: 'Available Feature',
+            title: 'Smart Notifications',
+            body: `
+                <h3>Get Reminders and Alerts</h3>
+                <p>Never miss a meal or health checkup with smart notifications.</p>
+                <ul>
+                    <li><strong>🍽️ Meal Reminders</strong> - Breakfast, lunch, dinner, snacks</li>
+                    <li><strong>💧 Water Intake Reminders</strong> - Stay hydrated throughout the day</li>
+                    <li><strong>🏃 Exercise Reminders</strong> - Stay active</li>
+                    <li><strong>🩺 Health Checkups</strong> - Reminders for health appointments</li>
+                    <li><strong>📊 Progress Reports</strong> - Weekly and monthly health reports</li>
+                </ul>
+                <p><strong>💡 Customize your notification preferences in settings.</strong></p>
+            `
+        },
+        'family': {
+            icon: '👨‍👩‍👧‍👦',
+            tag: 'Premium Feature',
+            title: 'Family Plans',
+            body: `
+                <h3>Manage Your Family's Health Together</h3>
+                <p>One account to manage nutrition for your entire family.</p>
+                <ul>
+                    <li><strong>👶 Kid-friendly plans</strong> - Nutrition for children</li>
+                    <li><strong>👴 Senior care</strong> - Nutrition for elderly family members</li>
+                    <li><strong>🍽️ Meal planning for all</strong> - Each member gets personalized plans</li>
+                    <li><strong>📊 Track everyone's progress</strong> - Monitor health metrics for all</li>
+                    <li><strong>💬 Share insights</strong> - Family health at a glance</li>
+                </ul>
+                <p><strong>💡 Invite family members and start managing health together!</strong></p>
+            `
+        },
+        'community': {
+            icon: '🤝',
+            tag: 'Available Feature',
+            title: 'Community Support',
+            body: `
+                <h3>Connect with Others on Your Health Journey</h3>
+                <p>Join a community of people working towards better health.</p>
+                <ul>
+                    <li><strong>💬 Discussion Forums</strong> - Share experiences and tips</li>
+                    <li><strong>🏆 Challenges</strong> - Participate in health challenges</li>
+                    <li><strong>⭐ Success Stories</strong> - Get inspired by others</li>
+                    <li><strong>🧑‍🤝‍🧑 Find Support</strong> - Connect with like-minded people</li>
+                    <li><strong>📈 Group Progress</strong> - See collective achievements</li>
+                </ul>
+                <p><strong>💡 Join the WELLNEST community today!</strong></p>
+            `
+        },
+        'sync': {
+            icon: '🔄',
+            tag: 'Available Feature',
+            title: 'Auto-Sync Across Devices',
+            body: `
+                <h3>Your Health Data, Always in Sync</h3>
+                <p>Access your health data from anywhere, on any device.</p>
+                <ul>
+                    <li><strong>📱 Mobile & Desktop</strong> - Sync across all devices</li>
+                    <li><strong>🔄 Real-time Updates</strong> - Changes appear instantly</li>
+                    <li><strong>💾 Cloud Backup</strong> - Your data is always safe</li>
+                    <li><strong>📊 Consistent Experience</strong> - Same data, any device</li>
+                    <li><strong>🔒 Secure & Private</strong> - Your data is encrypted</li>
+                </ul>
+                <p><strong>💡 Sign in with your account to sync data across devices.</strong></p>
+            `
+        },
+        'language': {
+            icon: '🌍',
+            tag: 'Available Feature',
+            title: 'Multi-Language Support',
+            body: `
+                <h3>Available in Your Language</h3>
+                <p>WELLNEST supports multiple languages for a better user experience.</p>
+                <ul>
+                    <li><strong>🇬🇧 English</strong> - Default language</li>
+                    <li><strong>🇮🇳 Hindi</strong> - हिंदी भाषा</li>
+                    <li><strong>🇪🇸 Spanish</strong> - Español</li>
+                    <li><strong>🇫🇷 French</strong> - Français</li>
+                    <li><strong>🇹🇳 Tamil</strong> - தமிழ்</li>
+                    <li><strong>🇮🇳 Telugu</strong> - తెలుగు</li>
+                    <li><strong>🇮🇳 Kannada</strong> - ಕನ್ನಡ</li>
+                </ul>
+                <p><strong>💡 Choose your preferred language from settings.</strong></p>
+            `
+        }
+    };
+
+    function openFeatureModal(id) {
+        const data = featureData[id];
+        if (!data) return;
+        
+        const modal = document.getElementById('featureModal');
+        const content = document.getElementById('featureModalContent');
+        
+        content.innerHTML = `
+            <span class="modal-icon">${data.icon}</span>
+            <span class="modal-tag">${data.tag}</span>
+            <h2>${data.title}</h2>
+            <div class="modal-body">${data.body}</div>
+        `;
+        
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeatureModal() {
+        document.getElementById('featureModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('featureModal').addEventListener('click', function(e) {
+        if (e.target === this) closeFeatureModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeFeatureModal();
+    });
+</script>
+
+</body>
+</html>

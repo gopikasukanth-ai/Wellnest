@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutri-Flash | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f0e9 100%);
+            min-height: 100vh;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2d6a4f;
+            letter-spacing: -0.5px;
+        }
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            align-items: center;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #1b4332;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        nav ul li a:hover {
+            color: #2d6a4f;
+        }
+        .nav-cta {
+            background: #2d6a4f;
+            color: white !important;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+        }
+        .nav-cta:hover {
+            background: #1b4332 !important;
+        }
+        .page-header {
+            text-align: center;
+            padding: 3rem 2rem 1rem;
+        }
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1b4332;
+        }
+        .page-header h1 span {
+            background: linear-gradient(135deg, #52b788, #2d6a4f);
+           -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header p {
+            color: #52796f;
+            font-size: 1.15rem;
+            margin-top: 0.5rem;
+        }
+        .flashcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            padding: 2.5rem 5% 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .flashcard {
+            perspective: 1000px;
+            height: 340px;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        .flashcard-front,
+        .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+        .flashcard-front {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .flashcard-front .card-image {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 16px 16px 0 0;
+            margin-top: -1.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .flashcard-front h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1b4332;
+            margin-bottom: 0.3rem;
+        }
+        .flashcard-front .card-tag {
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #e8f5ee;
+            color: #2d6a4f;
+        }
+        .flashcard-front .flip-hint {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            font-size: 0.7rem;
+            color: #a0b8b0;
+            opacity: 0.6;
+        }
+        .flashcard-back {
+            background: linear-gradient(145deg, #1b4332, #2d6a4f);
+            color: white;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1.8rem;
+            text-align: left;
+        }
+        .flashcard-back .back-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .flashcard-back h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #d8f3dc;
+        }
+        .flashcard-back p {
+            font-size: 0.92rem;
+            line-height: 1.5;
+            color: #cadfd6;
+            font-weight: 300;
+        }
+        .flashcard-back .benefit-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-top: 0.6rem;
+            color: #d8f3dc;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            align-self: flex-start;
+        }
+        .flashcard:nth-child(2) .flashcard-back {
+            background: linear-gradient(145deg, #5a3e2b, #8d6b4b);
+        }
+        .flashcard:nth-child(3) .flashcard-back {
+            background: linear-gradient(145deg, #7b2d3c, #b84a62);
+        }
+        .flashcard:nth-child(4) .flashcard-back {
+            background: linear-gradient(145deg, #1e4a6b, #2f7a9e);
+        }
+        .flashcard:nth-child(5) .flashcard-back {
+            background: linear-gradient(145deg, #6b4c1e, #a87d3a);
+        }
+        .flashcard:nth-child(6) .flashcard-back {
+            background: linear-gradient(145deg, #2d4a2d, #4d7a4d);
+        }
+        .flashcard:nth-child(7) .flashcard-back {
+            background: linear-gradient(145deg, #4a2d5a, #7a4d8d);
+        }
+        .flashcard:nth-child(8) .flashcard-back {
+            background: linear-gradient(145deg, #3a4a5a, #5a7a8d);
+        }
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            nav ul {
+                gap: 1.2rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            .flashcard-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+        @media (max-width: 480px) {
+            .flashcard-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+            .flashcard {
+                height: 260px;
+            }
+            .flashcard-front h3 {
+                font-size: 1rem;
+            }
+            .flashcard-back p {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">🥗 WELLNEST</div>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/flashcards" style="color: #2d6a4f; font-weight: 700;">Nutri-Flash</a></li>
+            <li><a href="#">Features</a></li>
+            <li><a href="#">About</a></li>
+            <li><a href="/login" class="nav-cta">Login</a></li>
+            
+        </ul>
+    </nav>
+    <section class="page-header">
+        <h1>🍎 <span>Nutri-Flash</span> Cards</h1>
+        <p>Flip, learn, and discover the power of everyday foods 🌿</p>
+    </section>
+    <section class="flashcard-grid">
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400&h=300&fit=crop&crop=center" alt="Avocado">
+                    <h3>🥑 Avocado</h3>
+                    <span class="card-tag">Healthy Fats</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">💚</div>
+                    <h4>Heart-Healthy Superfood</h4>
+                    <p>Rich in monounsaturated fats, potassium, and fiber. Helps lower bad cholesterol.</p>
+                    <span class="benefit-tag">✨ Good for skin & heart</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop&crop=center" alt="Quinoa">
+                    <h3>🌾 Quinoa</h3>
+                    <span class="card-tag">Complete Protein</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">💪</div>
+                    <h4>Plant-Based Powerhouse</h4>
+                    <p>One of the few plant foods with all 9 essential amino acids. High in fiber and magnesium.</p>
+                    <span class="benefit-tag">✨ Gluten-free & filling</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1543087909-8ac5df6a2e30?w=400&h=300&fit=crop&crop=center" alt="Berries">
+                    <h3>🫐 Berries</h3>
+                    <span class="card-tag">Antioxidants</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">🧠</div>
+                    <h4>Brain-Boosting Berries</h4>
+                    <p>Packed with antioxidants that protect your brain and reduce inflammation.</p>
+                    <span class="benefit-tag">✨ Anti-aging & immune support</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&h=300&fit=crop&crop=center" alt="Salmon">
+                    <h3>🐟 Salmon</h3>
+                    <span class="card-tag">Omega-3</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">🧡</div>
+                    <h4>Omega-3 Rich Fish</h4>
+                    <p>Excellent source of EPA and DHA that reduce inflammation and improve brain function.</p>
+                    <span class="benefit-tag">✨ Mood & joint health</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1585527001704-a67724f1c1f0?w=400&h=300&fit=crop&crop=center" alt="Sweet Potato">
+                    <h3>🍠 Sweet Potato</h3>
+                    <span class="card-tag">Complex Carbs</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">🌟</div>
+                    <h4>Vitamin A Powerhouse</h4>
+                    <p>One sweet potato gives you over 400% of your daily Vitamin A. Rich in fiber and potassium.</p>
+                    <span class="benefit-tag">✨ Great for eyes & immunity</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&h=300&fit=crop&crop=center" alt="Spinach">
+                    <h3>🌿 Spinach</h3>
+                    <span class="card-tag">Iron & Vitamins</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">⚡</div>
+                    <h4>Green Energy Leaf</h4>
+                    <p>Loaded with iron, calcium, Vitamin K, and folate. Supports bone and blood health.</p>
+                    <span class="benefit-tag">✨ Bone & blood health</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1597054219502-b5f4dcebe56b?w=400&h=300&fit=crop&crop=center" alt="Almonds">
+                    <h3>🥜 Almonds</h3>
+                    <span class="card-tag">Healthy Snack</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">🌰</div>
+                    <h4>Nutrient-Dense Nuts</h4>
+                    <p>Rich in Vitamin E, magnesium, and healthy fats. Supports brain and heart health.</p>
+                    <span class="benefit-tag">✨ Heart & brain food</span>
+                </div>
+            </div>
+        </div>
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <img class="card-image" src="https://images.unsplash.com/photo-1561484935-dc9df4f2e300?w=400&h=300&fit=crop&crop=center" alt="Greek Yogurt">
+                    <h3>🥛 Greek Yogurt</h3>
+                    <span class="card-tag">Probiotics</span>
+                    <span class="flip-hint">↻ Tap to flip</span>
+                </div>
+                <div class="flashcard-back">
+                    <div class="back-icon">🦠</div>
+                    <h4>Gut Health Superstar</h4>
+                    <p>Packed with protein and probiotics that support gut health and boost immunity.</p>
+                    <span class="benefit-tag">✨ Digestive & immune health</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.querySelectorAll('.flashcard').forEach(card => {
+            card.addEventListener('click', function() {
+                this.classList.toggle('flipped');
+            });
+        });
+    </script>
+</body>
+</html>

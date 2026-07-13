@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planner | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+        
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:3rem 0 2rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+        .form-section{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:30px;padding:2.5rem;border:1px solid rgba(255,255,255,0.15);margin-bottom:2rem}
+        .form-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+        .form-group label{display:block;font-weight:600;color:#0b2b26;margin-bottom:.5rem;font-size:.9rem}
+        .form-group select,.form-group input{width:100%;padding:.8rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.15);backdrop-filter:blur(5px);color:#0b2b26;font-size:.9rem;font-family:'Inter',sans-serif}
+        .form-group select option{background:#fff;color:#0b2b26}
+        .form-group select:focus,.form-group input:focus{outline:2px solid #1a7a5a;border-color:transparent}
+        .form-group .checkbox-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+        .form-group .checkbox-group label{display:flex;align-items:center;gap:.5rem;font-weight:400;font-size:.85rem;cursor:pointer}
+        .form-group .checkbox-group input[type="checkbox"]{width:18px;height:18px;accent-color:#1a7a5a}
+        .select-all-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#0b2b26;padding:.4rem 1.2rem;border-radius:20px;cursor:pointer;font-size:.8rem;font-weight:500;transition:all .3s;margin-left:1rem}
+        .select-all-btn:hover{background:rgba(26,122,90,0.15);border-color:#1a7a5a}
+
+        .btn-generate{background:#0b2b26;color:white;border:none;padding:1rem 3rem;border-radius:50px;font-weight:700;font-size:1.1rem;cursor:pointer;transition:all .3s;margin-top:1.5rem;width:100%}
+        .btn-generate:hover{background:#1a4d44;transform:scale(1.02)}
+
+        .results-section{display:none;background:rgba(255,255,255,0.1);backdrop-filter:blur(15px);border-radius:30px;padding:2.5rem;border:1px solid rgba(255,255,255,0.15);margin-top:2rem}
+        .results-section.active{display:block;animation:fadeIn 0.6s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        .results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+        .results-header h2{font-size:1.8rem;color:#0b2b26}
+        .results-header .btn-download{background:#1a7a5a;color:white;border:none;padding:.6rem 1.8rem;border-radius:50px;font-weight:600;cursor:pointer;transition:all .3s}
+        .results-header .btn-download:hover{background:#0b2b26;transform:scale(1.02)}
+
+        .day-card{background:rgba(255,255,255,0.08);border-radius:16px;padding:1.5rem;margin-bottom:1rem;border:1px solid rgba(255,255,255,0.08)}
+        .day-card h3{font-size:1.2rem;color:#0b2b26;margin-bottom:.8rem}
+        .day-card .meals{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+        .day-card .meal{background:rgba(255,255,255,0.05);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:all .3s}
+        .day-card .meal:hover{background:rgba(255,255,255,0.15);transform:scale(1.02)}
+        .day-card .meal .meal-icon{font-size:1.8rem;display:block;margin-bottom:.3rem}
+        .day-card .meal .meal-name{font-weight:600;color:#0b2b26;font-size:.95rem}
+        .day-card .meal .meal-desc{font-size:.8rem;color:#0b2b26;opacity:.6}
+
+        .recipe-popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);z-index:9999;justify-content:center;align-items:center;animation:fadeIn 0.3s ease}
+        .recipe-popup.active{display:flex}
+        .recipe-popup .popup-content{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:30px;padding:2.5rem;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;position:relative;border:1px solid rgba(255,255,255,0.2)}
+        .recipe-popup .close-btn{position:absolute;top:15px;right:20px;font-size:2rem;color:#0b2b26;cursor:pointer;transition:all .3s;background:none;border:none}
+        .recipe-popup .close-btn:hover{transform:rotate(90deg)}
+        .recipe-popup .popup-title{font-size:1.8rem;font-weight:800;color:#0b2b26;margin-bottom:.5rem;display:flex;align-items:center;gap:1rem}
+        .recipe-popup .popup-subtitle{font-size:.9rem;color:#0b2b26;opacity:.6;margin-bottom:1.5rem}
+        .recipe-popup .popup-section{margin-bottom:1rem}
+        .recipe-popup .popup-section h4{font-size:1rem;font-weight:700;color:#0b2b26;margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem}
+        .recipe-popup .popup-section ul{list-style:none;padding:0}
+        .recipe-popup .popup-section ul li{padding:.3rem 0;font-size:.9rem;color:#0b2b26;display:flex;align-items:center;gap:.5rem}
+        .recipe-popup .popup-section ul li::before{content:'▸';color:#1a7a5a;font-weight:700}
+        .recipe-popup .popup-section p{font-size:.9rem;color:#0b2b26;line-height:1.6}
+        .recipe-popup .popup-tags{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0 1rem}
+        .recipe-popup .popup-tags span{background:rgba(26,122,90,0.1);color:#1a7a5a;padding:.2rem .8rem;border-radius:20px;font-size:.75rem;font-weight:600}
+
+        .grocery-list{background:rgba(255,255,255,0.08);border-radius:16px;padding:1.5rem;margin-top:1.5rem}
+        .grocery-list h3{font-size:1.2rem;color:#0b2b26;margin-bottom:.8rem}
+        .grocery-list ul{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;list-style:none}
+        .grocery-list ul li{padding:.4rem 0;color:#0b2b26;font-size:.9rem;display:flex;align-items:center;gap:.5rem}
+        .grocery-list ul li::before{content:'✓';color:#1a7a5a;font-weight:700}
+
+        @media(max-width:768px){
+            .form-grid{grid-template-columns:1fr 1fr}
+            .day-card .meals{grid-template-columns:1fr}
+            .grocery-list ul{grid-template-columns:1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+            .results-header{flex-direction:column;text-align:center}
+            .form-group .checkbox-group{grid-template-columns:1fr 1fr}
+            .recipe-popup .popup-content{padding:1.5rem}
+            .recipe-popup .popup-title{font-size:1.4rem}
+        }
+        @media(max-width:480px){
+            .form-grid{grid-template-columns:1fr}
+            .form-group .checkbox-group{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner" class="active">Meal Planner</a>
+                <a href="/food-scanner">Food Scanner</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>🍽️ <span>Meal Planning</span> & Recommendations</h1>
+        <p>AI creates personalized weekly meal plans based on your diet type, cooking time, and food preferences.</p>
+    </div>
+</section>
+
+<section class="container">
+    <div class="form-section">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>🌱 Diet Type</label>
+                <select id="diet">
+                    <option value="balanced">Balanced</option>
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="keto">Keto</option>
+                    <option value="gluten-free">Gluten-Free</option>
+                    <option value="jain">Jain</option>
+                    <option value="halal">Halal</option>
+                    <option value="nonveg">Non-Vegetarian</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>📅 Days</label>
+                <select id="days">
+                    <option value="1">1 Day</option>
+                    <option value="3">3 Days</option>
+                    <option value="7" selected>7 Days</option>
+                    <option value="14">14 Days</option>
+                    <option value="30">30 Days</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>⏰ Cooking Time</label>
+                <select id="cookTime">
+                    <option value="any">Any Time</option>
+                    <option value="15">Under 15 min</option>
+                    <option value="30">Under 30 min</option>
+                    <option value="45">Under 45 min</option>
+                    <option value="60">Under 60 min</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🍽️ Meal Type</label>
+                <select id="mealType">
+                    <option value="all">All Meals</option>
+                    <option value="veg">Vegetarian</option>
+                    <option value="nonveg">Non-Vegetarian</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:1.5rem">
+            <label>🥗 Food Preferences (Select what you like)
+                <button class="select-all-btn" onclick="selectAll()">✅ Select All</button>
+                <button class="select-all-btn" onclick="unselectAll()">❌ Unselect All</button>
+            </label>
+            <div class="checkbox-group" id="foodPreferences">
+                <label><input type="checkbox" value="vegetables" checked> 🥬 Vegetables</label>
+                <label><input type="checkbox" value="greens" checked> 🌿 Greens</label>
+                <label><input type="checkbox" value="healthycarbs" checked> 🍠 Healthy Carbs</label>
+                <label><input type="checkbox" value="millets" checked> 🌾 Millets</label>
+                <label><input type="checkbox" value="grains" checked> 🌾 Grains</label>
+                <label><input type="checkbox" value="fruits" checked> 🍎 Fruits</label>
+                <label><input type="checkbox" value="protein" checked> 🥩 Protein</label>
+                <label><input type="checkbox" value="meat" checked> 🍖 Meat</label>
+                <label><input type="checkbox" value="dairy" checked> 🥛 Dairy</label>
+                <label><input type="checkbox" value="healthyfats" checked> 🥑 Healthy Fats</label>
+                <label><input type="checkbox" value="nutsseeds" checked> 🥜 Nuts & Seeds</label>
+                <label><input type="checkbox" value="legumes" checked> 🫘 Legumes & Beans</label>
+                <label><input type="checkbox" value="spices" checked> 🌶️ Spices & Herbs</label>
+                <label><input type="checkbox" value="tubers" checked> 🥔 Tubers & Roots</label>
+            </div>
+        </div>
+
+        <button class="btn-generate" onclick="generateMealPlan()">✨ Generate Meal Plan</button>
+    </div>
+
+    <div class="results-section" id="results">
+        <div class="results-header">
+            <h2>📋 Your Meal Plan</h2>
+            <button class="btn-download" onclick="downloadPlan()">📥 Download PDF</button>
+        </div>
+
+        <div id="mealPlanContainer"></div>
+
+        <div class="grocery-list" id="groceryList">
+            <h3>🛒 Your Grocery List</h3>
+            <ul id="groceryItems"></ul>
+        </div>
+    </div>
+</section>
+
+<!-- Recipe Popup -->
+<div class="recipe-popup" id="recipePopup">
+    <div class="popup-content">
+        <button class="close-btn" onclick="closeRecipe()">✕</button>
+        <div id="recipeContent">
+            <!-- Recipe content will be inserted here -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Recipe Database
+    // Complete Recipe Database
+const recipes = {
+    // ===== BREAKFAST RECIPES =====
+    'Vegetable Upma': {
+        icon: '🥣', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Semolina (Sooji) - 1 cup', 'Onion - 1 (chopped)', 'Green Chili - 2', 'Ginger - 1 inch', 'Curry Leaves - few', 'Mustard Seeds - 1 tsp', 'Urad Dal - 1 tsp', 'Chana Dal - 1 tsp', 'Vegetables - 1/2 cup', 'Salt to taste', 'Water - 2 cups', 'Oil - 2 tbsp'],
+        instructions: ['Heat oil, add mustard seeds, urad dal, chana dal, curry leaves.', 'Add onion, green chili, ginger and sauté until golden.', 'Add vegetables and cook for 2-3 minutes.', 'Add semolina and roast until fragrant.', 'Add water, salt and cook covered for 5-7 minutes.', 'Serve hot with chutney.'],
+        tags: ['Vegan', 'South Indian']
+    },
+    'Vegetable Dosa': {
+        icon: '🥞', prepTime: '6 hours (soaking)', cookTime: '10 min', difficulty: 'Medium',
+        ingredients: ['Rice - 1 cup', 'Urad Dal - 1/4 cup', 'Fenugreek - 1/2 tsp', 'Vegetables - 1/2 cup', 'Salt to taste', 'Oil for cooking'],
+        instructions: ['Soak rice, dal, fenugreek for 6 hours.', 'Grind to smooth batter, ferment overnight.', 'Add salt and chopped vegetables.', 'Spread on hot tawa, cook until golden.', 'Serve with chutney and sambar.'],
+        tags: ['Vegan', 'South Indian', 'Gluten-Free']
+    },
+    'Sprouts Salad': {
+        icon: '🥗', prepTime: '10 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Mixed Sprouts - 1 cup', 'Onion - 1/4 (chopped)', 'Tomato - 1 (chopped)', 'Cucumber - 1/4', 'Lemon Juice - 1 tbsp', 'Chaat Masala - 1/2 tsp', 'Salt to taste', 'Coriander Leaves'],
+        instructions: ['Boil sprouts for 5 minutes, drain and cool.', 'Add onion, tomato, cucumber.', 'Add lemon juice, chaat masala, salt.', 'Garnish with coriander and serve fresh.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Spinach Smoothie': {
+        icon: '🌿', prepTime: '5 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Spinach - 1 cup', 'Banana - 1', 'Apple - 1', 'Ginger - 1 inch', 'Lemon Juice - 1 tbsp', 'Water - 1 cup'],
+        instructions: ['Add all ingredients to blender.', 'Blend until smooth.', 'Serve fresh.'],
+        tags: ['Vegan', 'Gluten-Free', 'No-Cook']
+    },
+    'Quinoa Pongal': {
+        icon: '🍚', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Quinoa - 1 cup', 'Moong Dal - 1/2 cup', 'Ginger - 1 inch', 'Black Pepper - 1 tsp', 'Cumin - 1 tsp', 'Curry Leaves', 'Salt to taste', 'Water - 3 cups', 'Ghee - 2 tbsp'],
+        instructions: ['Dry roast quinoa and dal for 2-3 minutes.', 'Cook with water, salt, ginger until soft.', 'Heat ghee, add pepper, cumin, curry leaves.', 'Pour tempering over quinoa and mix well.'],
+        tags: ['Gluten-Free', 'Healthy']
+    },
+    'Oats Idli': {
+        icon: '🥮', prepTime: '15 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Oats - 1 cup', 'Semolina - 1/2 cup', 'Yogurt - 1/2 cup', 'Ginger - 1 inch', 'Green Chili - 2', 'Eno - 1 tsp', 'Salt to taste', 'Water as needed'],
+        instructions: ['Dry roast oats and semolina for 5 minutes.', 'Add yogurt, ginger, chili, salt, water to make batter.', 'Add eno just before steaming.', 'Pour into idli molds and steam for 10-12 minutes.'],
+        tags: ['Vegetarian', 'Healthy']
+    },
+    'Fruit Smoothie Bowl': {
+        icon: '🥣', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Banana - 1 (frozen)', 'Mixed Berries - 1/2 cup', 'Almond Milk - 1/2 cup', 'Oats - 2 tbsp', 'Honey - 1 tsp', 'Toppings (Chia Seeds, Nuts, Fruits)'],
+        instructions: ['Blend banana, berries, almond milk, oats, honey until smooth.', 'Pour into a bowl.', 'Top with chia seeds, nuts, fruits.'],
+        tags: ['Vegan', 'Gluten-Free', 'No-Cook']
+    },
+    'Fruit Salad': {
+        icon: '🍎', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Apple - 1', 'Banana - 1', 'Orange - 1', 'Grapes - 1/2 cup', 'Pomegranate - 1/2', 'Honey - 1 tbsp', 'Lemon Juice - 1 tsp'],
+        instructions: ['Chop all fruits into bite-sized pieces.', 'Mix with honey and lemon juice.', 'Chill and serve.'],
+        tags: ['Vegan', 'Gluten-Free', 'No-Cook']
+    },
+    'Scrambled Eggs': {
+        icon: '🍳', prepTime: '5 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Eggs - 4', 'Onion - 1/4 (chopped)', 'Green Chili - 2', 'Salt to taste', 'Black Pepper - 1/4 tsp', 'Butter - 1 tbsp'],
+        instructions: ['Beat eggs with salt and pepper.', 'Heat butter, add onion and chili.', 'Pour eggs and cook on low heat while stirring.', 'Serve hot with toast.'],
+        tags: ['High Protein', 'Low Carb', 'Keto']
+    },
+    'Paneer Bhurji': {
+        icon: '🧈', prepTime: '10 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Paneer - 250g', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic Paste - 1 tsp', 'Turmeric - 1/4 tsp', 'Red Chili Powder - 1/2 tsp', 'Garam Masala - 1/2 tsp', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Crumble paneer.', 'Heat oil, add onion, ginger-garlic and sauté.', 'Add tomato, cook until soft.', 'Add spices and salt.', 'Add paneer and cook for 3-4 minutes.', 'Garnish with coriander.'],
+        tags: ['Vegetarian', 'High Protein']
+    },
+    'Chicken Sausage': {
+        icon: '🍗', prepTime: '5 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Chicken Sausage - 4 pieces', 'Olive Oil - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Heat oil in a pan.', 'Add sausages and cook until golden brown all sides.', 'Season with salt and pepper.', 'Serve with eggs or toast.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Keto']
+    },
+    'Turkey Bacon': {
+        icon: '🥓', prepTime: '5 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Turkey Bacon - 6 slices', 'Olive Oil - 1 tsp'],
+        instructions: ['Heat oil in a pan over medium heat.', 'Add turkey bacon slices.', 'Cook until crispy, 3-4 minutes each side.', 'Drain on paper towel and serve.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Low Fat']
+    },
+    'Lamb Chops': {
+        icon: '🍖', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Lamb Chops - 4 pieces', 'Olive Oil - 2 tbsp', 'Garlic - 3 cloves', 'Rosemary - 1 sprig', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season lamb chops with salt and pepper.', 'Heat oil in a pan.', 'Add garlic and rosemary.', 'Cook lamb chops 3-4 minutes each side.', 'Rest for 5 minutes before serving.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Keto']
+    },
+    'Yogurt Parfait': {
+        icon: '🥛', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Greek Yogurt - 1 cup', 'Granola - 1/2 cup', 'Mixed Berries - 1/2 cup', 'Honey - 1 tbsp'],
+        instructions: ['Layer yogurt, granola, and berries in a glass.', 'Repeat layers.', 'Drizzle with honey.', 'Serve fresh.'],
+        tags: ['Vegetarian', 'High Protein', 'No-Cook']
+    },
+    'Cheese Toast': {
+        icon: '🧀', prepTime: '5 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Bread - 2 slices', 'Cheese - 1/2 cup (grated)', 'Butter - 1 tbsp', 'Oregano - 1/2 tsp', 'Chili Flakes - 1/4 tsp'],
+        instructions: ['Butter the bread slices.', 'Top with grated cheese.', 'Sprinkle oregano and chili flakes.', 'Toast until cheese melts and bread is crispy.'],
+        tags: ['Vegetarian', 'Quick']
+    },
+    'Avocado Toast': {
+        icon: '🥑', prepTime: '5 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Bread - 2 slices', 'Avocado - 1 (mashed)', 'Lemon Juice - 1 tsp', 'Salt to taste', 'Pepper to taste', 'Chili Flakes - 1/4 tsp'],
+        instructions: ['Toast the bread slices.', 'Mash avocado with lemon juice, salt, pepper.', 'Spread on toast.', 'Sprinkle chili flakes and serve.'],
+        tags: ['Vegan', 'Healthy', 'Quick']
+    },
+    'Peanut Butter Sandwich': {
+        icon: '🥜', prepTime: '5 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Bread - 2 slices', 'Peanut Butter - 2 tbsp', 'Banana - 1 (sliced)', 'Honey - 1 tsp'],
+        instructions: ['Spread peanut butter on both slices.', 'Top with banana slices.', 'Drizzle honey.', 'Close and serve.'],
+        tags: ['Vegetarian', 'No-Cook']
+    },
+    'Chia Pudding': {
+        icon: '🌱', prepTime: '5 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Chia Seeds - 2 tbsp', 'Milk/Almond Milk - 1/2 cup', 'Honey - 1 tsp', 'Vanilla - 1/2 tsp', 'Toppings (Fruits, Nuts)'],
+        instructions: ['Mix chia seeds, milk, honey, vanilla.', 'Refrigerate for 2 hours or overnight.', 'Top with fruits and nuts before serving.'],
+        tags: ['Vegan', 'Gluten-Free', 'No-Cook']
+    },
+    'Almond Smoothie': {
+        icon: '🥜', prepTime: '5 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Almonds - 10 pieces', 'Banana - 1', 'Almond Milk - 1 cup', 'Dates - 2', 'Cinnamon - 1/4 tsp'],
+        instructions: ['Soak almonds for 2 hours (optional).', 'Blend all ingredients until smooth.', 'Serve fresh.'],
+        tags: ['Vegan', 'Gluten-Free', 'No-Cook']
+    },
+    'Spiced Oatmeal': {
+        icon: '🌶️', prepTime: '5 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Oats - 1/2 cup', 'Milk - 1 cup', 'Cardamom - 1/2 tsp', 'Cinnamon - 1/4 tsp', 'Jaggery/Honey - 1 tbsp', 'Nuts - 2 tbsp'],
+        instructions: ['Cook oats with milk.', 'Add cardamom, cinnamon, sweetener.', 'Cook until thick.', 'Top with nuts and serve.'],
+        tags: ['Vegetarian', 'Healthy']
+    },
+    'Masala Dosa': {
+        icon: '🌶️', prepTime: '8 hours (fermentation)', cookTime: '10 min', difficulty: 'Medium',
+        ingredients: ['Rice - 1 cup', 'Urad Dal - 1/4 cup', 'Fenugreek - 1/2 tsp', 'Salt to taste', 'Oil for cooking'],
+        instructions: ['Soak rice, dal, fenugreek for 6 hours.', 'Grind to smooth batter, ferment overnight.', 'Add salt and mix.', 'Spread thin on hot tawa, cook until crispy.'],
+        tags: ['Vegan', 'South Indian', 'Gluten-Free']
+    },
+    'Sweet Potato Hash': {
+        icon: '🥔', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Sweet Potato - 1 (cubed)', 'Onion - 1/4', 'Bell Pepper - 1/4', 'Eggs - 2', 'Salt to taste', 'Pepper to taste', 'Oil - 2 tbsp'],
+        instructions: ['Heat oil, add sweet potato and cook until soft.', 'Add onion and bell pepper, cook 5 minutes.', 'Season with salt and pepper.', 'Make wells and crack eggs into them.', 'Cook until eggs are set.'],
+        tags: ['Healthy', 'Gluten-Free']
+    },
+    'Potato Pancakes': {
+        icon: '🥔', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Potato - 2 (grated)', 'Onion - 1/4 (grated)', 'Egg - 1', 'Flour - 2 tbsp', 'Salt to taste', 'Pepper to taste', 'Oil for frying'],
+        instructions: ['Mix grated potato, onion, egg, flour, salt, pepper.', 'Form into small patties.', 'Heat oil and fry until golden on both sides.', 'Serve with sour cream or chutney.'],
+        tags: ['Vegetarian', 'Comfort Food']
+    },
+
+    // ===== LUNCH RECIPES =====
+    'Grilled Vegetable Salad': {
+        icon: '🥗', prepTime: '15 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Zucchini - 1', 'Bell Pepper - 1', 'Mushrooms - 1/2 cup', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Pepper to taste', 'Lemon Juice - 1 tbsp'],
+        instructions: ['Slice vegetables.', 'Toss with olive oil, salt, pepper.', 'Grill for 5-7 minutes until tender.', 'Drizzle with lemon juice and serve.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Vegetable Pulao': {
+        icon: '🍛', prepTime: '15 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Rice - 1 cup', 'Mixed Vegetables - 1 cup', 'Onion - 1 (sliced)', 'Ginger-Garlic - 1 tsp', 'Whole Spices - few', 'Salt to taste', 'Water - 2 cups', 'Oil - 2 tbsp'],
+        instructions: ['Heat oil, add whole spices, onion, ginger-garlic.', 'Add vegetables and sauté.', 'Add rice and water, salt.', 'Cover and cook until rice is done.', 'Garnish with coriander.'],
+        tags: ['Vegetarian', 'Indian']
+    },
+    'Green Salad with Tofu': {
+        icon: '🥗', prepTime: '10 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Tofu - 200g (cubed)', 'Mixed Greens - 2 cups', 'Cherry Tomatoes - 1/2 cup', 'Olive Oil - 2 tbsp', 'Balsamic Vinegar - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Pan-sear tofu cubes until golden.', 'Toss greens, tomatoes, tofu.', 'Dress with oil, vinegar, salt, pepper.', 'Serve fresh.'],
+        tags: ['Vegan', 'Gluten-Free', 'High Protein']
+    },
+    'Spinach Dal': {
+        icon: '🌿', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Moong Dal - 1/2 cup', 'Spinach - 2 cups', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Turmeric - 1/2 tsp', 'Red Chili Powder - 1/2 tsp', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Cook dal with turmeric until soft.', 'Heat oil, add onion, ginger-garlic.', 'Add tomato, spices, and spinach.', 'Cook until spinach wilts.', 'Add cooked dal and simmer for 5 minutes.'],
+        tags: ['Vegetarian', 'Indian', 'Healthy']
+    },
+    'Brown Rice with Dal': {
+        icon: '🍛', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Brown Rice - 1 cup', 'Moong Dal - 1/2 cup', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Turmeric - 1/2 tsp', 'Cumin Seeds - 1 tsp', 'Salt to taste', 'Water - 4 cups', 'Oil - 2 tbsp'],
+        instructions: ['Cook rice and dal together with water, salt, turmeric.', 'Heat oil, add cumin, onion, ginger-garlic.', 'Add tomato, cook until soft.', 'Add cooked rice-dal mixture and mix well.', 'Cook for 5 minutes and serve.'],
+        tags: ['Vegetarian', 'Healthy']
+    },
+    'Sweet Potato Bowl': {
+        icon: '🍠', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Sweet Potato - 1 (cubed)', 'Black Beans - 1 can', 'Corn - 1/2 cup', 'Avocado - 1/2', 'Lime Juice - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Roast sweet potato cubes at 400°F for 25 minutes.', 'Mix with black beans, corn, avocado.', 'Drizzle with lime juice.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Millet Khichdi': {
+        icon: '🍛', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Foxtail Millet - 1 cup', 'Moong Dal - 1/2 cup', 'Onion - 1 (chopped)', 'Ginger - 1 inch', 'Turmeric - 1/2 tsp', 'Cumin Seeds - 1 tsp', 'Salt to taste', 'Water - 4 cups', 'Ghee - 2 tbsp'],
+        instructions: ['Heat ghee, add cumin, onion, ginger.', 'Add millet, dal, turmeric, salt.', 'Add water and cook until soft.', 'Serve hot with chutney.'],
+        tags: ['Gluten-Free', 'Healthy', 'Indian']
+    },
+    'Foxtail Millet Pulao': {
+        icon: '🌾', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Foxtail Millet - 1 cup', 'Mixed Vegetables - 1 cup', 'Onion - 1 (sliced)', 'Ginger-Garlic - 1 tsp', 'Whole Spices - few', 'Salt to taste', 'Water - 2 cups', 'Oil - 2 tbsp'],
+        instructions: ['Heat oil, add spices, onion, ginger-garlic.', 'Add vegetables and sauté.', 'Add millet and water, salt.', 'Cook until done.'],
+        tags: ['Gluten-Free', 'Vegetarian', 'Healthy']
+    },
+    'Brown Rice with Curry': {
+        icon: '🍛', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Brown Rice - 1 cup', 'Mixed Vegetables - 1 cup', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Curry Powder - 1 tbsp', 'Salt to taste', 'Water - 2 cups', 'Oil - 2 tbsp'],
+        instructions: ['Cook rice separately.', 'Heat oil, add onion, tomato, curry powder.', 'Add vegetables and cook until done.', 'Serve with rice.'],
+        tags: ['Vegetarian', 'Healthy']
+    },
+    'Wheat Roti with Vegetables': {
+        icon: '🌾', prepTime: '15 min', cookTime: '20 min', difficulty: 'Medium',
+        ingredients: ['Wheat Flour - 2 cups', 'Mixed Vegetables - 1 cup', 'Onion - 1 (chopped)', 'Spices - to taste', 'Salt to taste', 'Water - as needed'],
+        instructions: ['Make dough with wheat flour and water.', 'Roll into rotis and cook on tawa.', 'Sauté vegetables with spices.', 'Serve rotis with vegetable curry.'],
+        tags: ['Vegetarian', 'Indian']
+    },
+    'Fruit Quinoa Salad': {
+        icon: '🥗', prepTime: '15 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Quinoa - 1/2 cup', 'Mango - 1 (diced)', 'Avocado - 1', 'Bell Pepper - 1/2', 'Lime Juice - 2 tbsp', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Coriander'],
+        instructions: ['Cook quinoa and let cool.', 'Mix with mango, avocado, bell pepper.', 'Dress with lime juice, oil, salt.', 'Garnish with coriander.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Apple Chickpea Salad': {
+        icon: '🍎', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Chickpeas - 1 can', 'Apple - 1 (diced)', 'Celery - 1 stalk', 'Onion - 1/4', 'Greek Yogurt - 1/4 cup', 'Lemon Juice - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Drain and rinse chickpeas.', 'Mix all ingredients with yogurt.', 'Season with salt and pepper.', 'Serve on greens.'],
+        tags: ['Vegetarian', 'High Protein', 'No-Cook']
+    },
+    'Grilled Chicken Salad': {
+        icon: '🍗', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Chicken Breast - 1', 'Mixed Greens - 2 cups', 'Cherry Tomatoes - 1/2 cup', 'Cucumber - 1/2', 'Olive Oil - 2 tbsp', 'Lemon Juice - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season chicken with salt and pepper.', 'Grill for 6-7 minutes each side.', 'Slice chicken and place over greens.', 'Add tomatoes and cucumber.', 'Dress with oil and lemon juice.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Healthy']
+    },
+    'Salmon Bowl': {
+        icon: '🐟', prepTime: '10 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Salmon - 150g', 'Brown Rice - 1/2 cup', 'Edamame - 1/2 cup', 'Avocado - 1/2', 'Soy Sauce - 1 tbsp', 'Sesame Seeds - 1 tsp'],
+        instructions: ['Cook rice and edamame.', 'Pan-sear salmon with salt.', 'Serve salmon over rice.', 'Top with avocado, soy sauce, sesame seeds.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Omega-3']
+    },
+    'Grilled Steak': {
+        icon: '🥩', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Beef Steak - 200g', 'Olive Oil - 2 tbsp', 'Garlic - 2 cloves', 'Rosemary - 1 sprig', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season steak with salt and pepper.', 'Heat oil, add garlic and rosemary.', 'Cook steak 4-5 minutes each side.', 'Rest for 5 minutes before serving.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Keto']
+    },
+    'Chicken Curry': {
+        icon: '🍗', prepTime: '15 min', cookTime: '30 min', difficulty: 'Medium',
+        ingredients: ['Chicken - 500g', 'Onion - 2 (chopped)', 'Tomato - 2 (chopped)', 'Ginger-Garlic - 1 tbsp', 'Curry Powder - 2 tbsp', 'Coconut Milk - 1/2 cup', 'Salt to taste', 'Oil - 3 tbsp'],
+        instructions: ['Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add curry powder and chicken.', 'Cook until chicken is done.', 'Add coconut milk and simmer 5 minutes.'],
+        tags: ['Non-Vegetarian', 'Indian', 'Comfort Food']
+    },
+    'Fish Fry': {
+        icon: '🐟', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Fish - 4 pieces', 'Turmeric - 1/2 tsp', 'Red Chili Powder - 1 tsp', 'Ginger-Garlic Paste - 1 tbsp', 'Lemon Juice - 1 tbsp', 'Salt to taste', 'Oil for frying'],
+        instructions: ['Marinate fish with all ingredients for 20 minutes.', 'Heat oil in a pan.', 'Fry fish until golden and crisp on both sides.', 'Serve with lemon wedges.'],
+        tags: ['Non-Vegetarian', 'Indian', 'High Protein']
+    },
+    'Beef Stir-Fry': {
+        icon: '🥩', prepTime: '15 min', cookTime: '10 min', difficulty: 'Medium',
+        ingredients: ['Beef - 300g (thinly sliced)', 'Bell Pepper - 1', 'Onion - 1', 'Soy Sauce - 2 tbsp', 'Ginger - 1 inch', 'Garlic - 2 cloves', 'Oil - 2 tbsp'],
+        instructions: ['Heat oil, add ginger, garlic.', 'Add beef and cook until browned.', 'Add vegetables and stir-fry.', 'Add soy sauce and cook 2 minutes.'],
+        tags: ['Non-Vegetarian', 'High Protein', 'Quick']
+    },
+    'Mutton Curry': {
+        icon: '🍖', prepTime: '20 min', cookTime: '60 min', difficulty: 'Hard',
+        ingredients: ['Mutton - 500g', 'Onion - 3 (chopped)', 'Tomato - 3 (chopped)', 'Ginger-Garlic - 1 tbsp', 'Curry Powder - 3 tbsp', 'Salt to taste', 'Oil - 4 tbsp', 'Coriander for garnish'],
+        instructions: ['Pressure cook mutton until tender.', 'Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add curry powder and cooked mutton.', 'Simmer for 15 minutes.', 'Garnish with coriander.'],
+        tags: ['Non-Vegetarian', 'Indian', 'Comfort Food']
+    },
+    'Paneer Tikka with Salad': {
+        icon: '🧀', prepTime: '20 min', cookTime: '10 min', difficulty: 'Medium',
+        ingredients: ['Paneer - 200g (cubed)', 'Yogurt - 2 tbsp', 'Tandoori Masala - 1 tbsp', 'Lemon Juice - 1 tbsp', 'Mixed Greens - 2 cups', 'Salt to taste'],
+        instructions: ['Marinate paneer with yogurt, masala, salt for 20 min.', 'Pan-sear or grill paneer until golden.', 'Serve on a bed of greens with lemon juice.'],
+        tags: ['Vegetarian', 'High Protein']
+    },
+    'Yogurt Rice': {
+        icon: '🥛', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Rice - 1 cup', 'Yogurt - 1 cup', 'Mustard Seeds - 1 tsp', 'Curry Leaves - few', 'Green Chili - 2', 'Ginger - 1 inch', 'Salt to taste', 'Oil - 1 tbsp'],
+        instructions: ['Cook rice and let cool.', 'Mix with yogurt and salt.', 'Heat oil, add mustard seeds, curry leaves, chili, ginger.', 'Add tempering to rice and mix well.'],
+        tags: ['Vegetarian', 'Indian', 'Comfort Food']
+    },
+    'Avocado Chickpea Salad': {
+        icon: '🥑', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Chickpeas - 1 can', 'Avocado - 1 (diced)', 'Red Onion - 1/4', 'Cilantro - 1/4 cup', 'Lime Juice - 2 tbsp', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Rinse chickpeas.', 'Mix all ingredients.', 'Serve fresh.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Olive Oil Pasta': {
+        icon: '🫒', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Pasta - 200g', 'Olive Oil - 1/4 cup', 'Garlic - 4 cloves', 'Chili Flakes - 1/2 tsp', 'Parsley - 1/4 cup', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Cook pasta according to package.', 'Heat olive oil, add garlic and chili flakes.', 'Add cooked pasta and toss.', 'Season with salt, pepper, parsley.'],
+        tags: ['Vegan', 'Italian', 'Quick']
+    },
+    'Walnut Pesto Pasta': {
+        icon: '🥜', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Pasta - 200g', 'Walnuts - 1/2 cup', 'Basil - 2 cups', 'Garlic - 2 cloves', 'Olive Oil - 1/2 cup', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Cook pasta.', 'Blend walnuts, basil, garlic, oil to make pesto.', 'Toss pasta with pesto.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Italian', 'Quick']
+    },
+    'Seed Crusted Fish': {
+        icon: '🌱', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Fish - 2 fillets', 'Chia Seeds - 1/4 cup', 'Flax Seeds - 1/4 cup', 'Egg - 1', 'Salt to taste', 'Pepper to taste', 'Oil for frying'],
+        instructions: ['Mix seeds with salt and pepper.', 'Dip fish in egg, then coat with seeds.', 'Pan-fry in oil for 3-4 minutes each side.', 'Serve with lemon.'],
+        tags: ['Non-Vegetarian', 'Gluten-Free', 'Healthy']
+    },
+    'Chickpea Curry': {
+        icon: '🫘', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Chickpeas - 1 can', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Curry Powder - 1 tbsp', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add curry powder and chickpeas.', 'Simmer for 10-15 minutes.'],
+        tags: ['Vegan', 'Vegetarian', 'Indian']
+    },
+    'Lentil Soup': {
+        icon: '🫘', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Red Lentils - 1 cup', 'Onion - 1 (chopped)', 'Carrot - 1 (chopped)', 'Celery - 1 stalk', 'Garlic - 2 cloves', 'Vegetable Broth - 4 cups', 'Salt to taste', 'Pepper to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, carrot, celery, garlic in oil.', 'Add lentils and broth.', 'Cook until lentils are soft.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Spicy Chickpea Wrap': {
+        icon: '🌶️', prepTime: '10 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Chickpeas - 1 can', 'Wrap - 1', 'Lettuce - 2 leaves', 'Tomato - 1/2', 'Hot Sauce - 1 tbsp', 'Yogurt - 2 tbsp', 'Salt to taste'],
+        instructions: ['Mash chickpeas with hot sauce and yogurt.', 'Spread on wrap.', 'Top with lettuce and tomato.', 'Roll and serve.'],
+        tags: ['Vegetarian', 'Quick']
+    },
+    'Masala Khichdi': {
+        icon: '🌶️', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Rice - 1/2 cup', 'Moong Dal - 1/2 cup', 'Onion - 1 (chopped)', 'Ginger - 1 inch', 'Turmeric - 1/2 tsp', 'Red Chili Powder - 1/2 tsp', 'Salt to taste', 'Water - 3 cups', 'Ghee - 2 tbsp'],
+        instructions: ['Heat ghee, add onion, ginger.', 'Add rice, dal, spices, salt.', 'Add water and cook until soft.', 'Garnish with coriander.'],
+        tags: ['Vegetarian', 'Indian', 'Comfort Food']
+    },
+    'Sweet Potato Curry': {
+        icon: '🥔', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Sweet Potato - 2 (cubed)', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Curry Powder - 1 tbsp', 'Coconut Milk - 1/2 cup', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add curry powder and sweet potato.', 'Add water and cook until potato is soft.', 'Add coconut milk and simmer.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Potato and Pea Curry': {
+        icon: '🥔', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Potato - 2 (cubed)', 'Peas - 1/2 cup', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Curry Powder - 1 tbsp', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add curry powder, potato, peas.', 'Add water and cook until potato is soft.'],
+        tags: ['Vegan', 'Vegetarian', 'Indian']
+    },
+
+    // ===== DINNER RECIPES =====
+    'Vegetable Stir-Fry': {
+        icon: '🥘', prepTime: '10 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Mixed Vegetables - 3 cups', 'Soy Sauce - 2 tbsp', 'Ginger - 1 inch', 'Garlic - 2 cloves', 'Sesame Oil - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Heat oil, add ginger, garlic.', 'Add vegetables and stir-fry.', 'Add soy sauce and cook 2 minutes.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Gluten-Free', 'Quick']
+    },
+    'Vegetable Soup': {
+        icon: '🍲', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Mixed Vegetables - 2 cups', 'Vegetable Broth - 4 cups', 'Onion - 1 (chopped)', 'Garlic - 2 cloves', 'Salt to taste', 'Pepper to taste', 'Oil - 1 tbsp'],
+        instructions: ['Sauté onion and garlic in oil.', 'Add vegetables and broth.', 'Cook until vegetables are tender.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Sautéed Greens with Garlic': {
+        icon: '🥘', prepTime: '5 min', cookTime: '5 min', difficulty: 'Easy',
+        ingredients: ['Mixed Greens - 4 cups', 'Garlic - 3 cloves (sliced)', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Pepper to taste', 'Lemon Juice - 1 tbsp'],
+        instructions: ['Heat oil, add garlic until fragrant.', 'Add greens and cook until wilted.', 'Season with salt, pepper, lemon juice.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Green Curry': {
+        icon: '🌿', prepTime: '10 min', cookTime: '20 min', difficulty: 'Medium',
+        ingredients: ['Green Curry Paste - 2 tbsp', 'Coconut Milk - 1 can', 'Mixed Vegetables - 2 cups', 'Tofu - 200g', 'Salt to taste', 'Oil - 1 tbsp'],
+        instructions: ['Heat oil, add curry paste.', 'Add coconut milk and bring to boil.', 'Add vegetables and tofu.', 'Cook until vegetables are tender.', 'Season with salt.'],
+        tags: ['Vegan', 'Thai', 'Healthy']
+    },
+    'Sweet Potato Fries': {
+        icon: '🍠', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Sweet Potato - 2 (cut into fries)', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Paprika - 1/2 tsp', 'Garlic Powder - 1/2 tsp'],
+        instructions: ['Preheat oven to 425°F.', 'Toss sweet potato with oil and seasonings.', 'Bake for 20-25 minutes, flipping halfway.', 'Serve hot.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Quinoa Bowl': {
+        icon: '🍚', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Quinoa - 1 cup', 'Black Beans - 1/2 cup', 'Corn - 1/2 cup', 'Avocado - 1/2', 'Lime Juice - 1 tbsp', 'Salt to taste', 'Cilantro - to taste'],
+        instructions: ['Cook quinoa according to package.', 'Mix with beans, corn, avocado.', 'Drizzle with lime juice.', 'Season with salt and cilantro.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Millet Pongal': {
+        icon: '🍛', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Foxtail Millet - 1 cup', 'Moong Dal - 1/2 cup', 'Ginger - 1 inch', 'Black Pepper - 1 tsp', 'Cumin - 1 tsp', 'Salt to taste', 'Water - 3 cups', 'Ghee - 2 tbsp'],
+        instructions: ['Dry roast millet and dal for 2-3 minutes.', 'Cook with water, salt, ginger until soft.', 'Heat ghee, add pepper, cumin.', 'Pour tempering over and mix well.'],
+        tags: ['Gluten-Free', 'Healthy', 'Indian']
+    },
+    'Jowar Roti': {
+        icon: '🌾', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Jowar Flour - 2 cups', 'Salt to taste', 'Water - as needed', 'Oil - for cooking'],
+        instructions: ['Mix flour and salt.', 'Add water slowly to make soft dough.', 'Roll into rotis.', 'Cook on tawa until golden spots appear.'],
+        tags: ['Vegan', 'Gluten-Free', 'Indian']
+    },
+    'Brown Rice with Vegetables': {
+        icon: '🍛', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Brown Rice - 1 cup', 'Mixed Vegetables - 1 cup', 'Onion - 1 (chopped)', 'Salt to taste', 'Water - 2 cups', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion in oil.', 'Add vegetables and cook for 3-4 minutes.', 'Add rice and water, salt.', 'Cook until rice is done.'],
+        tags: ['Vegetarian', 'Healthy']
+    },
+    'Whole Wheat Pasta': {
+        icon: '🌾', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Whole Wheat Pasta - 200g', 'Olive Oil - 2 tbsp', 'Garlic - 2 cloves', 'Red Chili Flakes - 1/2 tsp', 'Parmesan - 1/4 cup', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Cook pasta according to package.', 'Heat oil, add garlic and chili flakes.', 'Add cooked pasta and toss.', 'Top with parmesan.'],
+        tags: ['Vegetarian', 'Italian']
+    },
+    'Baked Apple with Cinnamon': {
+        icon: '🍎', prepTime: '5 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Apple - 2', 'Brown Sugar - 2 tbsp', 'Cinnamon - 1 tsp', 'Butter - 1 tbsp'],
+        instructions: ['Core apples and place in baking dish.', 'Fill with brown sugar, cinnamon, butter.', 'Bake at 375°F for 20 minutes.'],
+        tags: ['Vegetarian', 'Dessert', 'Healthy']
+    },
+    'Mango Salsa Fish': {
+        icon: '🥭', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Fish - 2 fillets', 'Mango - 1 (diced)', 'Red Onion - 1/4 (chopped)', 'Cilantro - 1/4 cup', 'Lime Juice - 2 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season fish with salt and pepper.', 'Cook fish in a pan 4-5 minutes each side.', 'Mix mango, onion, cilantro, lime juice.', 'Top fish with salsa.'],
+        tags: ['Non-Vegetarian', 'Healthy', 'Low Carb']
+    },
+    'Grilled Chicken with Veggies': {
+        icon: '🍗', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Chicken Breast - 2', 'Zucchini - 1', 'Bell Pepper - 1', 'Olive Oil - 2 tbsp', 'Garlic Powder - 1 tsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season chicken and vegetables with oil, garlic, salt, pepper.', 'Grill chicken 6-7 minutes each side.', 'Grill vegetables until tender.', 'Serve together.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Low Carb']
+    },
+    'Baked Fish with Herbs': {
+        icon: '🐟', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Fish - 2 fillets', 'Olive Oil - 2 tbsp', 'Lemon Juice - 1 tbsp', 'Dill - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Preheat oven to 375°F.', 'Place fish on baking sheet.', 'Drizzle with oil, lemon juice, herbs.', 'Bake for 15-20 minutes.'],
+        tags: ['Non-Vegetarian', 'Healthy', 'Low Carb']
+    },
+    'Grilled Lamb Chops': {
+        icon: '🍖', prepTime: '15 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Lamb Chops - 4', 'Olive Oil - 2 tbsp', 'Garlic - 3 cloves', 'Rosemary - 1 sprig', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season lamb chops with salt and pepper.', 'Grill 4-5 minutes each side.', 'Rest for 5 minutes before serving.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Keto']
+    },
+    'Roasted Chicken': {
+        icon: '🍗', prepTime: '15 min', cookTime: '60 min', difficulty: 'Hard',
+        ingredients: ['Whole Chicken - 1.5kg', 'Olive Oil - 2 tbsp', 'Garlic - 4 cloves', 'Rosemary - 2 sprigs', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Preheat oven to 375°F.', 'Season chicken with oil, garlic, rosemary, salt, pepper.', 'Roast for 1 hour or until cooked through.', 'Let rest before carving.'],
+        tags: ['Non-Vegetarian', 'Comfort Food', 'Sunday Dinner']
+    },
+    'Grilled Salmon': {
+        icon: '🐟', prepTime: '10 min', cookTime: '15 min', difficulty: 'Medium',
+        ingredients: ['Salmon - 2 fillets', 'Olive Oil - 2 tbsp', 'Lemon Juice - 1 tbsp', 'Salt to taste', 'Pepper to taste', 'Dill - 1 tbsp'],
+        instructions: ['Season salmon with oil, lemon, dill, salt, pepper.', 'Grill 4-5 minutes each side.', 'Serve with lemon wedges.'],
+        tags: ['High Protein', 'Non-Vegetarian', 'Omega-3']
+    },
+    'Beef Burger': {
+        icon: '🥩', prepTime: '10 min', cookTime: '10 min', difficulty: 'Easy',
+        ingredients: ['Ground Beef - 200g', 'Burger Bun - 1', 'Lettuce - 1 leaf', 'Tomato - 1 slice', 'Onion - 2 slices', 'Cheese - 1 slice', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season ground beef with salt and pepper, form into patty.', 'Grill 4-5 minutes each side.', 'Toast bun and assemble with toppings.'],
+        tags: ['Non-Vegetarian', 'Comfort Food', 'American']
+    },
+    'BBQ Ribs': {
+        icon: '🍖', prepTime: '15 min', cookTime: '120 min', difficulty: 'Hard',
+        ingredients: ['Pork Ribs - 1kg', 'BBQ Sauce - 1 cup', 'Garlic Powder - 1 tsp', 'Paprika - 1 tbsp', 'Salt to taste', 'Pepper to taste'],
+        instructions: ['Season ribs with salt, pepper, garlic, paprika.', 'Bake at 300°F for 2 hours.', 'Brush with BBQ sauce.', 'Grill or broil for 5 minutes to caramelize.'],
+        tags: ['Non-Vegetarian', 'Comfort Food', 'American']
+    },
+    'Paneer Butter Masala': {
+        icon: '🧀', prepTime: '15 min', cookTime: '20 min', difficulty: 'Medium',
+        ingredients: ['Paneer - 250g', 'Butter - 2 tbsp', 'Onion - 1 (chopped)', 'Tomato - 2 (chopped)', 'Cashew - 10', 'Cream - 1/4 cup', 'Spices - to taste', 'Salt to taste'],
+        instructions: ['Sauté onion in butter, add tomato and cashew.', 'Cook until soft, then blend into paste.', 'Return to pan, add spices and paneer.', 'Simmer for 5 minutes.', 'Stir in cream.'],
+        tags: ['Vegetarian', 'Indian', 'Rich']
+    },
+    'Yogurt Curry': {
+        icon: '🥛', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Yogurt - 1 cup', 'Gram Flour - 1 tbsp', 'Onion - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Turmeric - 1/2 tsp', 'Red Chili Powder - 1/2 tsp', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Whisk yogurt and flour.', 'Sauté onion, ginger-garlic in oil.', 'Add spices and yogurt mixture.', 'Cook on low heat until thick.'],
+        tags: ['Vegetarian', 'Indian', 'Comfort Food']
+    },
+    'Guacamole with Veggies': {
+        icon: '🥑', prepTime: '10 min', cookTime: '0 min', difficulty: 'Easy',
+        ingredients: ['Avocado - 2', 'Onion - 1/4 (chopped)', 'Tomato - 1/2 (diced)', 'Lime Juice - 2 tbsp', 'Cilantro - 1/4 cup', 'Salt to taste', 'Veggie Sticks for dipping'],
+        instructions: ['Mash avocado.', 'Mix with onion, tomato, lime, cilantro, salt.', 'Serve with vegetable sticks.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Olive Oil Roasted Vegetables': {
+        icon: '🫒', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Mixed Vegetables - 3 cups', 'Olive Oil - 1/4 cup', 'Salt to taste', 'Pepper to taste', 'Herbs - to taste'],
+        instructions: ['Preheat oven to 400°F.', 'Toss vegetables with oil and seasonings.', 'Roast for 25-30 minutes until tender.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Almond Crusted Chicken': {
+        icon: '🥜', prepTime: '15 min', cookTime: '20 min', difficulty: 'Medium',
+        ingredients: ['Chicken Breast - 2', 'Almonds - 1/2 cup (ground)', 'Egg - 1', 'Salt to taste', 'Pepper to taste', 'Oil for frying'],
+        instructions: ['Season chicken, dip in egg.', 'Coat with ground almonds.', 'Pan-fry until golden and cooked through.'],
+        tags: ['Non-Vegetarian', 'High Protein', 'Gluten-Free']
+    },
+    'Seed Crackers': {
+        icon: '🌱', prepTime: '10 min', cookTime: '15 min', difficulty: 'Easy',
+        ingredients: ['Chia Seeds - 1/4 cup', 'Flax Seeds - 1/4 cup', 'Sunflower Seeds - 1/4 cup', 'Water - 1/2 cup', 'Salt to taste', 'Herbs - to taste'],
+        instructions: ['Mix all ingredients and let sit for 10 minutes.', 'Spread thin on baking sheet.', 'Bake at 325°F for 15 minutes.', 'Break into pieces.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Lentil Stew': {
+        icon: '🫘', prepTime: '10 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Brown Lentils - 1 cup', 'Onion - 1 (chopped)', 'Carrot - 1 (chopped)', 'Celery - 1 stalk', 'Garlic - 2 cloves', 'Vegetable Broth - 4 cups', 'Salt to taste', 'Pepper to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, carrot, celery, garlic in oil.', 'Add lentils and broth.', 'Cook until lentils are tender.', 'Season with salt and pepper.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Bean Chili': {
+        icon: '🫘', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Kidney Beans - 1 can', 'Black Beans - 1 can', 'Onion - 1 (chopped)', 'Garlic - 2 cloves', 'Chili Powder - 2 tbsp', 'Cumin - 1 tbsp', 'Tomatoes - 1 can', 'Salt to taste', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion and garlic in oil.', 'Add chili powder, cumin and cook 1 minute.', 'Add beans, tomatoes, and simmer for 20 minutes.'],
+        tags: ['Vegan', 'Vegetarian', 'Comfort Food']
+    },
+    'Spicy Vegetable Curry': {
+        icon: '🌶️', prepTime: '10 min', cookTime: '25 min', difficulty: 'Easy',
+        ingredients: ['Mixed Vegetables - 3 cups', 'Onion - 1 (chopped)', 'Tomato - 1 (chopped)', 'Ginger-Garlic - 1 tsp', 'Curry Powder - 2 tbsp', 'Chili Powder - 1 tsp', 'Salt to taste', 'Coconut Milk - 1/2 cup', 'Oil - 2 tbsp'],
+        instructions: ['Sauté onion, ginger-garlic in oil.', 'Add tomato and cook until soft.', 'Add spices and vegetables.', 'Add coconut milk and simmer until vegetables are tender.'],
+        tags: ['Vegan', 'Indian', 'Healthy']
+    },
+    'Tandoori Paneer': {
+        icon: '🌶️', prepTime: '20 min', cookTime: '10 min', difficulty: 'Medium',
+        ingredients: ['Paneer - 250g (cubed)', 'Yogurt - 1/2 cup', 'Tandoori Masala - 2 tbsp', 'Lemon Juice - 1 tbsp', 'Ginger-Garlic - 1 tsp', 'Salt to taste', 'Oil - 1 tbsp'],
+        instructions: ['Marinate paneer with all ingredients for 30 min.', 'Grill or pan-sear until golden.', 'Serve with mint chutney.'],
+        tags: ['Vegetarian', 'Indian', 'High Protein']
+    },
+    'Roasted Sweet Potatoes': {
+        icon: '🥔', prepTime: '5 min', cookTime: '30 min', difficulty: 'Easy',
+        ingredients: ['Sweet Potato - 2 (cubed)', 'Olive Oil - 2 tbsp', 'Salt to taste', 'Pepper to taste', 'Paprika - 1/2 tsp'],
+        instructions: ['Preheat oven to 400°F.', 'Toss sweet potato with oil and seasonings.', 'Roast for 25-30 minutes until crispy.'],
+        tags: ['Vegan', 'Gluten-Free', 'Healthy']
+    },
+    'Mashed Potatoes with Veggies': {
+        icon: '🥔', prepTime: '10 min', cookTime: '20 min', difficulty: 'Easy',
+        ingredients: ['Potato - 3 (cubed)', 'Milk - 1/4 cup', 'Butter - 2 tbsp', 'Salt to taste', 'Pepper to taste', 'Mixed Vegetables - 1 cup (steamed)'],
+        instructions: ['Boil potatoes until soft.', 'Mash with milk, butter, salt, pepper.', 'Fold in steamed vegetables.'],
+        tags: ['Vegetarian', 'Comfort Food']
+    }
+};
+
+    function selectAll() {
+        document.querySelectorAll('#foodPreferences input[type="checkbox"]').forEach(cb => {
+            cb.checked = true;
+        });
+    }
+
+    function unselectAll() {
+        document.querySelectorAll('#foodPreferences input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+    }
+
+    function getSelectedPreferences() {
+        const selected = [];
+        document.querySelectorAll('#foodPreferences input[type="checkbox"]:checked').forEach(cb => {
+            selected.push(cb.value);
+        });
+        return selected;
+    }
+
+    function generateMealPlan() {
+        const days = parseInt(document.getElementById('days').value);
+        const selectedPrefs = getSelectedPreferences();
+
+        if (selectedPrefs.length === 0) {
+            alert('⚠️ Please select at least one food preference!');
+            return;
+        }
+
+        const results = document.getElementById('results');
+        results.classList.add('active');
+
+        const container = document.getElementById('mealPlanContainer');
+        const groceryItems = document.getElementById('groceryItems');
+
+        let planHTML = '';
+        let grocerySet = new Set();
+
+        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        const groceryMap = {
+            'Upma': 'Semolina',
+            'Ragi': 'Ragi Flour',
+            'Porridge': 'Oats',
+            'Pongal': 'Rice',
+            'Quinoa': 'Quinoa',
+            'Sprouts': 'Sprouts',
+            'Salad': 'Mixed Vegetables',
+            'Dosa': 'Dosa Batter',
+            'Idli': 'Idli Batter',
+            'Smoothie': 'Fruits',
+            'Bowl': 'Mixed Ingredients',
+            'Oatmeal': 'Oats',
+            'Pancakes': 'Pancake Mix',
+            'Toast': 'Bread',
+            'Sandwich': 'Bread',
+            'Parfait': 'Yogurt',
+            'Pudding': 'Milk',
+            'Scrambled Eggs': 'Eggs',
+            'Bhurji': 'Paneer',
+            'Tikka': 'Paneer',
+            'Curry': 'Mixed Vegetables',
+            'Pulao': 'Rice',
+            'Khichdi': 'Rice',
+            'Roti': 'Wheat Flour',
+            'Dal': 'Lentils',
+            'Soup': 'Vegetables',
+            'Stew': 'Vegetables',
+            'Chili': 'Beans',
+            'Pasta': 'Pasta',
+            'Fries': 'Potato',
+            'Mashed Potatoes': 'Potato',
+            'Sautéed Greens': 'Spinach',
+            'Green Curry': 'Coconut Milk',
+            'Tandoori': 'Paneer',
+            'Guacamole': 'Avocado',
+            'Pesto': 'Basil',
+            'Crusted': 'Nuts',
+            'Salsa': 'Tomato',
+            'Fish': 'Fish',
+            'Chicken': 'Chicken',
+            'Chicken Breast': 'Chicken',
+            'Chicken Sausage': 'Chicken',
+            'Turkey Bacon': 'Turkey',
+            'Turkey': 'Turkey',
+            'Mutton': 'Mutton',
+            'Lamb': 'Lamb',
+            'Lamb Chops': 'Lamb',
+            'Beef': 'Beef',
+            'Beef Burger': 'Beef',
+            'Steak': 'Beef',
+            'Salmon': 'Salmon',
+            'Tuna': 'Tuna',
+            'Ribs': 'Pork',
+            'Paneer': 'Paneer',
+            'Tofu': 'Tofu',
+            'Cheese': 'Cheese',
+            'Yogurt': 'Yogurt',
+            'Milk': 'Milk',
+            'Ghee': 'Ghee',
+            'Butter': 'Butter',
+            'Spinach': 'Spinach',
+            'Kale': 'Kale',
+            'Lettuce': 'Lettuce',
+            'Methi': 'Fenugreek',
+            'Amaranth': 'Amaranth',
+            'Sweet Potato': 'Sweet Potato',
+            'Potato': 'Potato',
+            'Brown Rice': 'Brown Rice',
+            'Wheat': 'Wheat',
+            'Barley': 'Barley',
+            'Buckwheat': 'Buckwheat',
+            'Oats': 'Oats',
+            'Bajra': 'Bajra',
+            'Jowar': 'Jowar',
+            'Foxtail Millet': 'Foxtail Millet',
+            'Little Millet': 'Little Millet',
+            'Almonds': 'Almonds',
+            'Walnuts': 'Walnuts',
+            'Cashews': 'Cashews',
+            'Chia Seeds': 'Chia Seeds',
+            'Flax Seeds': 'Flax Seeds',
+            'Lentils': 'Lentils',
+            'Chickpeas': 'Chickpeas',
+            'Kidney Beans': 'Kidney Beans',
+            'Black Beans': 'Black Beans',
+            'Mung Beans': 'Mung Beans',
+            'Apple': 'Apple',
+            'Banana': 'Banana',
+            'Orange': 'Orange',
+            'Mango': 'Mango',
+            'Grapes': 'Grapes',
+            'Watermelon': 'Watermelon',
+            'Avocado': 'Avocado',
+            'Olive Oil': 'Olive Oil',
+            'Coconut Oil': 'Coconut Oil',
+            'Turmeric': 'Turmeric',
+            'Cumin': 'Cumin',
+            'Ginger': 'Ginger',
+            'Garlic': 'Garlic',
+            'Black Pepper': 'Black Pepper'
+        };
+
+        for (let i = 0; i < Math.min(days, 7); i++) {
+            const dayIndex = i % dayNames.length;
+            
+            let breakfastOptions = [];
+            let lunchOptions = [];
+            let dinnerOptions = [];
+            
+            selectedPrefs.forEach(pref => {
+                if (mealOptions.breakfast[pref]) {
+                    breakfastOptions = breakfastOptions.concat(mealOptions.breakfast[pref]);
+                }
+                if (mealOptions.lunch[pref]) {
+                    lunchOptions = lunchOptions.concat(mealOptions.lunch[pref]);
+                }
+                if (mealOptions.dinner[pref]) {
+                    dinnerOptions = dinnerOptions.concat(mealOptions.dinner[pref]);
+                }
+            });
+
+            if (breakfastOptions.length === 0) breakfastOptions = ['🥣 Vegetable Upma', '🥣 Ragi Porridge'];
+            if (lunchOptions.length === 0) lunchOptions = ['🍛 Brown Rice with Dal', '🥗 Quinoa with Vegetables'];
+            if (dinnerOptions.length === 0) dinnerOptions = ['🍲 Vegetable Soup', '🥘 Grilled Vegetables'];
+
+            const bIndex = (i * 2) % breakfastOptions.length;
+            const lIndex = (i * 3) % lunchOptions.length;
+            const dIndex = (i * 4) % dinnerOptions.length;
+
+            const breakfast = breakfastOptions[bIndex];
+            const lunch = lunchOptions[lIndex];
+            const dinner = dinnerOptions[dIndex];
+
+            planHTML += `
+                <div class="day-card">
+                    <h3>📅 ${dayNames[dayIndex]}</h3>
+                    <div class="meals">
+                        <div class="meal" onclick="openRecipe('${breakfast.replace(/'/g, "\\'")}')">
+                            <span class="meal-icon">🌅</span>
+                            <div class="meal-name">${breakfast}</div>
+                            <div class="meal-desc">Breakfast</div>
+                        </div>
+                        <div class="meal" onclick="openRecipe('${lunch.replace(/'/g, "\\'")}')">
+                            <span class="meal-icon">☀️</span>
+                            <div class="meal-name">${lunch}</div>
+                            <div class="meal-desc">Lunch</div>
+                        </div>
+                        <div class="meal" onclick="openRecipe('${dinner.replace(/'/g, "\\'")}')">
+                            <span class="meal-icon">🌙</span>
+                            <div class="meal-name">${dinner}</div>
+                            <div class="meal-desc">Dinner</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const allMeals = [breakfast, lunch, dinner];
+            allMeals.forEach(meal => {
+                let cleanMeal = meal.replace(/[^\w\s,]/g, '').trim();
+                let parts = cleanMeal.split(/[,()]/);
+                parts.forEach(part => {
+                    let words = part.trim().split(' ');
+                    words.forEach(word => {
+                        const skipWords = ['with', 'and', 'or', 'of', 'in', 'on', 'at', 'to', 'for', 'from', 'by', 'Grilled', 'Roasted', 'Sautéed', 'Baked', 'Fried', 'Spicy', 'Masala', 'Tandoori', 'Green', 'Red', 'Yellow', 'Mixed', 'Fresh', 'Organic', 'Local', 'Seasonal', 'Whole', 'Brown', 'White', 'Black', 'Sweet', 'Sour', 'Salty', 'Crispy', 'Crunchy', 'Soft', 'Creamy', 'Rich', 'Light', 'Heavy', 'Hot', 'Cold', 'Warm', 'Cool'];
+                        if (skipWords.includes(word)) return;
+                        if (word.length > 2) {
+                            let groceryItem = groceryMap[word] || word;
+                            grocerySet.add(groceryItem);
+                        }
+                    });
+                });
+            });
+        }
+
+        container.innerHTML = planHTML;
+
+        let groceryHTML = '';
+        grocerySet.forEach(item => {
+            groceryHTML += `<li>${item}</li>`;
+        });
+        groceryItems.innerHTML = groceryHTML;
+
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function openRecipe(mealName) {
+    // Remove emoji and special characters for matching
+    let cleanName = mealName.replace(/[^\w\s,]/g, '').trim();
+    // Try exact match first
+    let recipe = recipes[mealName];
+    if (!recipe) {
+        // Try clean match
+        recipe = recipes[cleanName];
+    }
+    if (!recipe) {
+        // Try partial match - find first recipe that contains the name
+        const keys = Object.keys(recipes);
+        for (let key of keys) {
+            if (cleanName.includes(key) || key.includes(cleanName)) {
+                recipe = recipes[key];
+                break;
+            }
+        }
+    }
+    if (!recipe) {
+        alert('📖 Recipe coming soon for ' + mealName);
+        return;
+    }
+
+    const popup = document.getElementById('recipePopup');
+    const content = document.getElementById('recipeContent');
+
+    content.innerHTML = `
+        <div class="popup-title">${recipe.icon || '🍽️'} ${mealName}</div>
+        <div class="popup-tags">
+            <span>⏱️ Prep: ${recipe.prepTime}</span>
+            <span>🔥 Cook: ${recipe.cookTime}</span>
+            <span>📊 ${recipe.difficulty}</span>
+            ${recipe.tags ? recipe.tags.map(tag => `<span>#${tag}</span>`).join('') : ''}
+        </div>
+        <div class="popup-section">
+            <h4>🛒 Ingredients</h4>
+            <ul>
+                ${recipe.ingredients ? recipe.ingredients.map(ing => `<li>${ing}</li>`).join('') : '<li>Ingredients coming soon</li>'}
+            </ul>
+        </div>
+        <div class="popup-section">
+            <h4>👨‍🍳 Instructions</h4>
+            <ol style="padding-left:1.5rem;color:#0b2b26;font-size:.9rem;line-height:1.8;">
+                ${recipe.instructions ? recipe.instructions.map(step => `<li>${step}</li>`).join('') : '<li>Instructions coming soon</li>'}
+            </ol>
+        </div>
+    `;
+
+    popup.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+    function closeRecipe() {
+        document.getElementById('recipePopup').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('recipePopup').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeRecipe();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeRecipe();
+        }
+    });
+
+    function downloadPlan() {
+        const planContent = document.getElementById('mealPlanContainer').innerHTML;
+        const groceryContent = document.getElementById('groceryItems').innerHTML;
+        
+        if (!planContent) {
+            alert('⚠️ Please generate a meal plan first!');
+            return;
+        }
+
+        const diet = document.getElementById('diet').value;
+        const days = document.getElementById('days').value;
+        
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>WELLNEST Meal Plan</title>
+                <style>
+                    body{font-family:'Inter',sans-serif;padding:40px;color:#0b2b26;max-width:900px;margin:auto}
+                    h1{color:#1a7a5a;font-size:28px;border-bottom:3px solid #1a7a5a;padding-bottom:10px}
+                    .subtitle{color:#52796f;font-size:14px;margin-bottom:30px}
+                    .day-card{background:#f5f7fa;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #e9edf2}
+                    .day-card h3{color:#0b2b26;font-size:18px;margin-bottom:15px}
+                    .meals{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+                    .meal{background:white;border-radius:10px;padding:15px;text-align:center;border:1px solid #e9edf2}
+                    .meal-icon{font-size:24px;display:block;margin-bottom:5px}
+                    .meal-name{font-weight:600;font-size:14px;color:#0b2b26}
+                    .meal-desc{font-size:12px;color:#94a3b8}
+                    .grocery-list{background:#f0f5f2;border-radius:12px;padding:20px;margin-top:30px}
+                    .grocery-list h3{color:#0b2b26;font-size:18px;margin-bottom:15px}
+                    .grocery-list ul{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;list-style:none;padding:0}
+                    .grocery-list ul li{padding:5px 0;font-size:14px;color:#0b2b26}
+                    .grocery-list ul li::before{content:'✓ ';color:#1a7a5a;font-weight:700}
+                    .footer{text-align:center;margin-top:40px;color:#94a3b8;font-size:12px;border-top:1px solid #e9edf2;padding-top:20px}
+                    @media print{body{padding:20px}.day-card{page-break-inside:avoid}}
+                    @media(max-width:600px){.meals{grid-template-columns:1fr}.grocery-list ul{grid-template-columns:1fr}}
+                </style>
+            </head>
+            <body>
+                <h1>🥗 WELLNEST Meal Plan</h1>
+                <p class="subtitle">📅 ${days} Day Plan • 🌱 ${diet.charAt(0).toUpperCase() + diet.slice(1)} Diet</p>
+                ${document.querySelector('.results-section').innerHTML.replace(/<button[^>]*>.*?<\/button>/g, '')}
+                <div class="footer">
+                    <p>Generated by WELLNEST - AI Nutrition Advisor</p>
+                    <p>Visit: wellnest.com</p>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+
+    // Meal options with updated data (keeping existing data)
+    const mealOptions = {
+        breakfast: {
+            vegetables: ['🥣 Vegetable Upma', '🥞 Vegetable Dosa'],
+            greens: ['🥗 Sprouts Salad', '🌿 Spinach Smoothie'],
+            healthycarbs: ['🍚 Quinoa Pongal', '🥣 Oats Idli'],
+            millets: ['🥞 Millet Dosa', '🥣 Ragi Porridge'],
+            grains: ['🍚 Brown Rice Pongal', '🥣 Wheat Upma'],
+            fruits: ['🥣 Fruit Smoothie Bowl', '🍎 Fruit Salad'],
+            protein: ['🍳 Scrambled Eggs', '🧈 Paneer Bhurji'],
+            meat: ['🍗 Chicken Sausage', '🥓 Turkey Bacon', '🍖 Lamb Chops'],
+            dairy: ['🥛 Yogurt Parfait', '🧀 Cheese Toast'],
+            healthyfats: ['🥑 Avocado Toast', '🥜 Peanut Butter Sandwich'],
+            nutsseeds: ['🌱 Chia Pudding', '🥜 Almond Smoothie'],
+            legumes: ['🥣 Sprouts Salad', '🫘 Lentil Pancakes'],
+            spices: ['🌶️ Spiced Oatmeal', '🌶️ Masala Dosa'],
+            tubers: ['🥔 Sweet Potato Hash', '🥔 Potato Pancakes']
+        },
+        lunch: {
+            vegetables: ['🥗 Grilled Vegetable Salad', '🍛 Vegetable Pulao'],
+            greens: ['🥗 Green Salad with Tofu', '🌿 Spinach Dal'],
+            healthycarbs: ['🍚 Brown Rice with Dal', '🍠 Sweet Potato Bowl'],
+            millets: ['🍛 Millet Khichdi', '🌾 Foxtail Millet Pulao'],
+            grains: ['🍛 Brown Rice with Curry', '🌾 Wheat Roti with Vegetables'],
+            fruits: ['🥗 Fruit Quinoa Salad', '🍎 Apple Chickpea Salad'],
+            protein: ['🍗 Grilled Chicken Salad', '🐟 Salmon Bowl'],
+            meat: ['🥩 Grilled Steak', '🍗 Chicken Curry', '🐟 Fish Fry', '🥩 Beef Stir-Fry', '🍖 Mutton Curry'],
+            dairy: ['🧀 Paneer Tikka with Salad', '🥛 Yogurt Rice'],
+            healthyfats: ['🥑 Avocado Chickpea Salad', '🫒 Olive Oil Pasta'],
+            nutsseeds: ['🥜 Walnut Pesto Pasta', '🌱 Seed Crusted Fish'],
+            legumes: ['🫘 Chickpea Curry', '🫘 Lentil Soup'],
+            spices: ['🌶️ Spicy Chickpea Wrap', '🌶️ Masala Khichdi'],
+            tubers: ['🥔 Sweet Potato Curry', '🥔 Potato and Pea Curry']
+        },
+        dinner: {
+            vegetables: ['🥘 Vegetable Stir-Fry', '🍲 Vegetable Soup'],
+            greens: ['🥘 Sautéed Greens with Garlic', '🌿 Green Curry'],
+            healthycarbs: ['🍠 Sweet Potato Fries', '🍚 Quinoa Bowl'],
+            millets: ['🍛 Millet Pongal', '🌾 Jowar Roti'],
+            grains: ['🍛 Brown Rice with Vegetables', '🌾 Whole Wheat Pasta'],
+            fruits: ['🍎 Baked Apple with Cinnamon', '🥭 Mango Salsa Fish'],
+            protein: ['🍗 Grilled Chicken with Veggies', '🐟 Baked Fish with Herbs'],
+            meat: ['🥩 Grilled Lamb Chops', '🍗 Roasted Chicken', '🐟 Grilled Salmon', '🥩 Beef Burger', '🍖 BBQ Ribs'],
+            dairy: ['🧀 Paneer Butter Masala', '🥛 Yogurt Curry'],
+            healthyfats: ['🥑 Guacamole with Veggies', '🫒 Olive Oil Roasted Vegetables'],
+            nutsseeds: ['🥜 Almond Crusted Chicken', '🌱 Seed Crackers'],
+            legumes: ['🫘 Lentil Stew', '🫘 Bean Chili'],
+            spices: ['🌶️ Spicy Vegetable Curry', '🌶️ Tandoori Paneer'],
+            tubers: ['🥔 Roasted Sweet Potatoes', '🥔 Mashed Potatoes with Veggies']
+        }
+    };
+</script>
+
+</body>
+</html>

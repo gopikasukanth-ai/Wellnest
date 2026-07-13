@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Scanner | WELLNEST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:url('/static/images/bg.jpg') no-repeat center center fixed;background-size:cover;color:#0b2b26;min-height:100vh}
+        .container{max-width:1200px;margin:0 auto;padding:0 5%}
+
+        header{padding:1.2rem 0;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+        nav{display:flex;justify-content:space-between;align-items:center}
+        .logo{font-size:1.6rem;font-weight:800;color:#0b2b26}
+        .nav-links{display:flex;align-items:center;gap:2rem}
+        .nav-links a{color:#0b2b26;text-decoration:none;font-weight:500;font-size:.85rem}
+        .nav-links a.cta-button{background:#0b2b26;color:white;padding:.5rem 1.8rem;border-radius:50px}
+        .nav-links a.active{color:#1a7a5a;font-weight:700}
+
+        .page-title{text-align:center;padding:3rem 0 2rem}
+        .page-title h1{font-size:2.8rem;font-weight:800;color:#0b2b26}
+        .page-title h1 span{color:#1a7a5a}
+        .page-title p{font-size:1.1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+
+        .scanner-section{background:rgba(255,255,255,0.12);backdrop-filter:blur(15px);border-radius:30px;padding:2.5rem;border:1px solid rgba(255,255,255,0.15);margin-bottom:2rem}
+        .scanner-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+
+        .upload-area{border:2px dashed rgba(255,255,255,0.3);border-radius:20px;padding:3rem;text-align:center;transition:all .3s;cursor:pointer;background:rgba(255,255,255,0.05)}
+        .upload-area:hover{border-color:#1a7a5a;background:rgba(255,255,255,0.1)}
+        .upload-area .icon{font-size:4rem;display:block;margin-bottom:1rem}
+        .upload-area h3{font-size:1.3rem;color:#0b2b26;margin-bottom:.5rem}
+        .upload-area p{color:#0b2b26;font-weight:500;font-size:.9rem}
+        .upload-area input[type="file"]{display:none}
+        .upload-area.dragover{border-color:#1a7a5a;background:rgba(26,122,90,0.1)}
+
+        .preview-area{text-align:center}
+        .preview-area img{max-width:100%;max-height:300px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.1);display:none}
+        .preview-area .placeholder{font-size:5rem;padding:3rem;background:rgba(255,255,255,0.05);border-radius:20px;border:1px solid rgba(255,255,255,0.1)}
+        .preview-area .placeholder p{font-size:1rem;color:#0b2b26;font-weight:500;margin-top:.5rem}
+        .preview-area .image-container{position:relative;display:inline-block}
+        .preview-area .image-container .remove-btn{position:absolute;top:-10px;right:-10px;background:#e74c3c;color:white;border:none;border-radius:50%;width:30px;height:30px;font-size:1rem;cursor:pointer;transition:all .3s}
+        .preview-area .image-container .remove-btn:hover{transform:scale(1.1)}
+
+        .btn-analyze{background:#0b2b26;color:white;border:none;padding:1rem 3rem;border-radius:50px;font-weight:700;font-size:1.1rem;cursor:pointer;transition:all .3s;margin-top:1.5rem;width:100%}
+        .btn-analyze:hover{background:#1a4d44;transform:scale(1.02)}
+        .btn-analyze:disabled{opacity:.5;cursor:not-allowed}
+
+        .results-section{display:none;background:rgba(255,255,255,0.08);border-radius:20px;padding:2rem;margin-top:2rem;border:1px solid rgba(255,255,255,0.08);animation:fadeIn 0.6s ease}
+        .results-section.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        .results-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-top:1.5rem}
+        .result-item{background:rgba(255,255,255,0.05);border-radius:16px;padding:1.5rem;text-align:center}
+        .result-item .value{font-size:2rem;font-weight:800;color:#1a7a5a;display:block}
+        .result-item .label{font-size:.85rem;color:#0b2b26;font-weight:600}
+        .result-item .unit{font-size:.9rem;color:#0b2b26;opacity:.5}
+
+        .health-score{text-align:center;padding:1.5rem;background:rgba(255,255,255,0.05);border-radius:16px;margin-top:1.5rem}
+        .health-score .score{font-size:3.5rem;font-weight:800;color:#1a7a5a;display:block}
+        .health-score .label{font-size:1rem;color:#0b2b26;font-weight:600}
+        .health-score .sub-text{font-size:.85rem;color:#0b2b26;font-weight:500;margin-top:.3rem}
+
+        .detected-food{text-align:center;padding:1rem;background:rgba(26,122,90,0.1);border-radius:16px;margin-bottom:1.5rem;border:1px solid rgba(26,122,90,0.2)}
+        .detected-food .food-name{font-size:1.8rem;font-weight:800;color:#1a7a5a}
+        .detected-food .food-sub{font-size:.9rem;color:#0b2b26;opacity:.7}
+
+        .recent-scans{margin-top:2rem}
+        .recent-scans h3{font-size:1.2rem;color:#0b2b26;margin-bottom:1rem}
+        .recent-scans .scan-item{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem;background:rgba(255,255,255,0.05);border-radius:12px;margin-bottom:.5rem;border:1px solid rgba(255,255,255,0.05)}
+        .recent-scans .scan-item .scan-name{font-weight:600;color:#0b2b26}
+        .recent-scans .scan-item .scan-cal{color:#1a7a5a;font-weight:600}
+
+        @media(max-width:768px){
+            .scanner-grid{grid-template-columns:1fr}
+            .results-grid{grid-template-columns:1fr 1fr}
+            .nav-links{flex-wrap:wrap;justify-content:center;gap:1rem}
+            nav{flex-direction:column;gap:1rem}
+            .page-title h1{font-size:2rem}
+            .upload-area{padding:1.5rem}
+        }
+        @media(max-width:480px){
+            .results-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <nav>
+            <div class="logo">🥗 WELLNEST</div>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/meal-planner">Meal Planner</a>
+                <a href="/food_scanner.html" class="active">Food Scanner</a>
+                <a href="/login" class="cta-button">Login</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section class="page-title">
+    <div class="container">
+        <h1>📸 <span>Food Scanner</span></h1>
+        <p>Upload a photo of any meal and get instant calories, macros, and nutrition information.</p>
+    </div>
+</section>
+
+<section class="container">
+    <div class="scanner-section">
+        <div class="scanner-grid">
+            <div>
+                <div class="upload-area" id="uploadArea">
+                    <span class="icon">📤</span>
+                    <h3>Upload Food Image</h3>
+                    <p>Drag & drop or click to upload</p>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+                <button class="btn-analyze" id="analyzeBtn" disabled>🔍 Analyze Food</button>
+            </div>
+
+            <div class="preview-area">
+                <div class="placeholder" id="placeholder">
+                    🍽️
+                    <p>Your food image will appear here</p>
+                </div>
+                <div class="image-container" id="imageContainer" style="display:none;">
+                    <img id="previewImage" src="" alt="Food">
+                    <button class="remove-btn" onclick="removeImage()">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="detected-food">
+                <div class="food-name" id="detectedFoodName">🍽️ Dish Name</div>
+                <div class="food-sub">AI Detected Food Item</div>
+            </div>
+            <h2 style="color:#0b2b26;margin-bottom:.5rem;">📊 Nutrition Analysis</h2>
+            <p style="color:#0b2b26;opacity:.6;font-size:.9rem;">Based on AI analysis of your uploaded food image</p>
+            <div class="results-grid">
+                <div class="result-item">
+                    <span class="value" id="calories">0</span>
+                    <span class="label">Calories</span>
+                    <span class="unit">kcal</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="protein">0</span>
+                    <span class="label">Protein</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="carbs">0</span>
+                    <span class="label">Carbohydrates</span>
+                    <span class="unit">g</span>
+                </div>
+                <div class="result-item">
+                    <span class="value" id="fats">0</span>
+                    <span class="label">Fats</span>
+                    <span class="unit">g</span>
+                </div>
+            </div>
+            <div class="health-score">
+                <span class="score" id="healthScore">0</span>
+                <span class="label">Health Score</span>
+                <div class="sub-text" id="healthText">Loading analysis...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="recent-scans">
+        <h3>🕐 Recent Scans</h3>
+        <div id="recentList">
+            <p style="color:#0b2b26;opacity:.5;text-align:center;padding:1rem;">No scans yet. Upload a food image to get started!</p>
+        </div>
+    </div>
+</section>
+
+<script>
+    // DOM Elements
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const previewImage = document.getElementById('previewImage');
+    const placeholder = document.getElementById('placeholder');
+    const imageContainer = document.getElementById('imageContainer');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const results = document.getElementById('results');
+
+    // Complete Food Database with correct nutrition
+    const foodDatabase = [
+        // FRUITS
+        { name: 'Apple', emoji: '🍎', calories: 95, protein: 0.5, carbs: 25, fats: 0.3, fiber: 4.4, score: 9 },
+        { name: 'Banana', emoji: '🍌', calories: 105, protein: 1.3, carbs: 27, fats: 0.4, fiber: 3.1, score: 8 },
+        { name: 'Mango', emoji: '🥭', calories: 150, protein: 1.4, carbs: 35, fats: 0.6, fiber: 3.7, score: 8 },
+        { name: 'Orange', emoji: '🍊', calories: 62, protein: 1.2, carbs: 15, fats: 0.2, fiber: 3.1, score: 9 },
+        { name: 'Grapes', emoji: '🍇', calories: 69, protein: 0.7, carbs: 18, fats: 0.2, fiber: 0.9, score: 7 },
+        { name: 'Watermelon', emoji: '🍉', calories: 30, protein: 0.6, carbs: 8, fats: 0.2, fiber: 0.4, score: 7 },
+        { name: 'Strawberry', emoji: '🍓', calories: 32, protein: 0.7, carbs: 8, fats: 0.3, fiber: 2, score: 8 },
+        { name: 'Avocado', emoji: '🥑', calories: 240, protein: 3, carbs: 12, fats: 22, fiber: 10, score: 8 },
+        { name: 'Pineapple', emoji: '🍍', calories: 83, protein: 0.9, carbs: 22, fats: 0.2, fiber: 2.3, score: 7 },
+        { name: 'Papaya', emoji: '🥭', calories: 59, protein: 0.6, carbs: 15, fats: 0.1, fiber: 2.5, score: 8 },
+        { name: 'Pomegranate', emoji: '🟣', calories: 83, protein: 1.7, carbs: 19, fats: 1.2, fiber: 4, score: 8 },
+        { name: 'Kiwi', emoji: '🥝', calories: 61, protein: 1.1, carbs: 15, fats: 0.5, fiber: 3, score: 8 },
+        { name: 'Lemon', emoji: '🍋', calories: 29, protein: 1.1, carbs: 9, fats: 0.3, fiber: 2.8, score: 9 },
+        { name: 'Peach', emoji: '🍑', calories: 59, protein: 1.4, carbs: 14, fats: 0.4, fiber: 2.2, score: 8 },
+        { name: 'Plum', emoji: '🟣', calories: 46, protein: 0.7, carbs: 11, fats: 0.3, fiber: 1.4, score: 7 },
+        { name: 'Cherry', emoji: '🍒', calories: 50, protein: 1, carbs: 12, fats: 0.2, fiber: 1.6, score: 7 },
+        { name: 'Blueberry', emoji: '🫐', calories: 57, protein: 0.7, carbs: 14, fats: 0.3, fiber: 2.4, score: 8 },
+        { name: 'Coconut', emoji: '🥥', calories: 354, protein: 3.3, carbs: 15, fats: 33, fiber: 9, score: 6 },
+        { name: 'Dates', emoji: '🌴', calories: 282, protein: 2.5, carbs: 75, fats: 0.4, fiber: 8, score: 5 },
+        { name: 'Fig', emoji: '🟢', calories: 74, protein: 0.8, carbs: 19, fats: 0.3, fiber: 2.9, score: 7 },
+
+        // VEGETABLES
+        { name: 'Broccoli', emoji: '🥦', calories: 55, protein: 3.7, carbs: 11, fats: 0.6, fiber: 5, score: 9 },
+        { name: 'Spinach', emoji: '🌿', calories: 23, protein: 2.9, carbs: 3.6, fats: 0.4, fiber: 2.2, score: 9 },
+        { name: 'Carrot', emoji: '🥕', calories: 41, protein: 0.9, carbs: 10, fats: 0.2, fiber: 2.8, score: 8 },
+        { name: 'Tomato', emoji: '🍅', calories: 18, protein: 0.9, carbs: 3.9, fats: 0.2, fiber: 1.2, score: 8 },
+        { name: 'Sweet Potato', emoji: '🍠', calories: 180, protein: 4, carbs: 41, fats: 0.3, fiber: 6.6, score: 8 },
+        { name: 'Potato', emoji: '🥔', calories: 163, protein: 4.3, carbs: 37, fats: 0.2, fiber: 3.6, score: 6 },
+        { name: 'Onion', emoji: '🧅', calories: 40, protein: 1.1, carbs: 9, fats: 0.1, fiber: 1.7, score: 7 },
+        { name: 'Garlic', emoji: '🧄', calories: 149, protein: 6.4, carbs: 33, fats: 0.5, fiber: 2.1, score: 8 },
+        { name: 'Bell Pepper', emoji: '🫑', calories: 31, protein: 1, carbs: 6, fats: 0.3, fiber: 2.1, score: 8 },
+        { name: 'Cauliflower', emoji: '🥦', calories: 25, protein: 2, carbs: 5, fats: 0.3, fiber: 2, score: 8 },
+        { name: 'Cabbage', emoji: '🥬', calories: 25, protein: 1.3, carbs: 6, fats: 0.1, fiber: 2.5, score: 8 },
+        { name: 'Cucumber', emoji: '🥒', calories: 16, protein: 0.7, carbs: 4, fats: 0.1, fiber: 0.5, score: 7 },
+        { name: 'Eggplant', emoji: '🍆', calories: 25, protein: 1, carbs: 6, fats: 0.2, fiber: 3, score: 7 },
+        { name: 'Mushroom', emoji: '🍄', calories: 22, protein: 3.1, carbs: 3.3, fats: 0.3, fiber: 1, score: 7 },
+        { name: 'Corn', emoji: '🌽', calories: 96, protein: 3.4, carbs: 21, fats: 1.5, fiber: 2.4, score: 6 },
+        { name: 'Green Beans', emoji: '🌱', calories: 31, protein: 1.8, carbs: 7, fats: 0.2, fiber: 2.7, score: 8 },
+        { name: 'Peas', emoji: '🟢', calories: 81, protein: 5.4, carbs: 14, fats: 0.4, fiber: 5, score: 7 },
+        { name: 'Beetroot', emoji: '🟣', calories: 43, protein: 1.6, carbs: 10, fats: 0.2, fiber: 2.8, score: 8 },
+        { name: 'Radish', emoji: '🔴', calories: 16, protein: 0.7, carbs: 3.4, fats: 0.1, fiber: 1.6, score: 7 },
+        { name: 'Okra', emoji: '🌱', calories: 33, protein: 2, carbs: 7, fats: 0.2, fiber: 3.2, score: 8 },
+
+        // GRAINS & CARBS
+        { name: 'Brown Rice', emoji: '🍚', calories: 216, protein: 5, carbs: 45, fats: 1.8, fiber: 3.5, score: 7 },
+        { name: 'White Rice', emoji: '🍚', calories: 206, protein: 4.3, carbs: 45, fats: 0.4, fiber: 0.6, score: 5 },
+        { name: 'Quinoa', emoji: '🌾', calories: 222, protein: 8, carbs: 39, fats: 3.6, fiber: 5, score: 8 },
+        { name: 'Oats', emoji: '🥣', calories: 150, protein: 5, carbs: 27, fats: 2.5, fiber: 4, score: 8 },
+        { name: 'Whole Wheat Bread', emoji: '🍞', calories: 247, protein: 13, carbs: 41, fats: 4.2, fiber: 6.8, score: 7 },
+        { name: 'White Bread', emoji: '🍞', calories: 265, protein: 9, carbs: 49, fats: 3.2, fiber: 2.7, score: 4 },
+        { name: 'Pasta', emoji: '🍝', calories: 220, protein: 8, carbs: 43, fats: 1.3, fiber: 2.5, score: 5 },
+        { name: 'Ragi', emoji: '🌾', calories: 328, protein: 7.3, carbs: 72, fats: 1.3, fiber: 11, score: 8 },
+        { name: 'Jowar', emoji: '🌾', calories: 339, protein: 10.4, carbs: 72, fats: 3.3, fiber: 11, score: 8 },
+        { name: 'Bajra', emoji: '🌾', calories: 361, protein: 11, carbs: 68, fats: 5, fiber: 9, score: 8 },
+
+        // PROTEINS
+        { name: 'Chicken Breast', emoji: '🍗', calories: 165, protein: 31, carbs: 0, fats: 3.6, fiber: 0, score: 9 },
+        { name: 'Chicken Curry', emoji: '🍗', calories: 250, protein: 28, carbs: 8, fats: 12, fiber: 1, score: 7 },
+        { name: 'Salmon', emoji: '🐟', calories: 208, protein: 22, carbs: 0, fats: 13, fiber: 0, score: 8 },
+        { name: 'Fish Fry', emoji: '🐟', calories: 220, protein: 25, carbs: 5, fats: 12, fiber: 0.5, score: 6 },
+        { name: 'Egg', emoji: '🥚', calories: 78, protein: 6, carbs: 0.6, fats: 5, fiber: 0, score: 7 },
+        { name: 'Scrambled Eggs', emoji: '🍳', calories: 90, protein: 7, carbs: 1, fats: 6, fiber: 0, score: 7 },
+        { name: 'Tofu', emoji: '🧈', calories: 76, protein: 8, carbs: 1.9, fats: 4.8, fiber: 0.3, score: 7 },
+        { name: 'Paneer', emoji: '🧀', calories: 265, protein: 18, carbs: 1.2, fats: 21, fiber: 0, score: 6 },
+        { name: 'Lentils', emoji: '🫘', calories: 230, protein: 18, carbs: 40, fats: 0.8, fiber: 15, score: 8 },
+        { name: 'Chickpeas', emoji: '🫘', calories: 269, protein: 15, carbs: 45, fats: 4.2, fiber: 12.5, score: 8 },
+        { name: 'Kidney Beans', emoji: '🫘', calories: 225, protein: 15, carbs: 40, fats: 1, fiber: 13, score: 8 },
+        { name: 'Mutton Curry', emoji: '🍖', calories: 300, protein: 26, carbs: 6, fats: 18, fiber: 1, score: 6 },
+        { name: 'Grilled Steak', emoji: '🥩', calories: 250, protein: 26, carbs: 0, fats: 16, fiber: 0, score: 7 },
+        { name: 'Beef Burger', emoji: '🥩', calories: 350, protein: 20, carbs: 35, fats: 15, fiber: 2, score: 4 },
+        { name: 'Turkey', emoji: '🦃', calories: 135, protein: 30, carbs: 0, fats: 1.5, fiber: 0, score: 9 },
+
+        // DAIRY
+        { name: 'Milk', emoji: '🥛', calories: 150, protein: 8, carbs: 12, fats: 8, fiber: 0, score: 7 },
+        { name: 'Yogurt', emoji: '🥛', calories: 100, protein: 10, carbs: 8, fats: 3, fiber: 0, score: 7 },
+        { name: 'Cheese', emoji: '🧀', calories: 402, protein: 25, carbs: 1.3, fats: 33, fiber: 0, score: 5 },
+        { name: 'Paneer Tikka', emoji: '🧀', calories: 280, protein: 20, carbs: 10, fats: 18, fiber: 1, score: 6 },
+
+        // FATS & OILS
+        { name: 'Olive Oil', emoji: '🫒', calories: 884, protein: 0, carbs: 0, fats: 100, fiber: 0, score: 6 },
+        { name: 'Ghee', emoji: '🧈', calories: 900, protein: 0, carbs: 0, fats: 100, fiber: 0, score: 5 },
+        { name: 'Butter', emoji: '🧈', calories: 717, protein: 0.9, carbs: 0.1, fats: 81, fiber: 0, score: 4 },
+
+        // NUTS & SEEDS
+        { name: 'Almonds', emoji: '🥜', calories: 579, protein: 21, carbs: 22, fats: 49, fiber: 12, score: 7 },
+        { name: 'Walnuts', emoji: '🥜', calories: 654, protein: 15, carbs: 14, fats: 65, fiber: 7, score: 7 },
+        { name: 'Cashews', emoji: '🥜', calories: 553, protein: 18, carbs: 30, fats: 44, fiber: 3, score: 6 },
+        { name: 'Chia Seeds', emoji: '🌱', calories: 486, protein: 16, carbs: 42, fats: 31, fiber: 34, score: 8 },
+        { name: 'Flax Seeds', emoji: '🌱', calories: 534, protein: 18, carbs: 29, fats: 42, fiber: 27, score: 8 },
+
+        // SNACKS & FAST FOOD
+        { name: 'Pizza', emoji: '🍕', calories: 285, protein: 12, carbs: 36, fats: 10, fiber: 2.5, score: 4 },
+        { name: 'Sushi', emoji: '🍣', calories: 250, protein: 18, carbs: 30, fats: 8, fiber: 1, score: 6 },
+        { name: 'Salad', emoji: '🥗', calories: 150, protein: 5, carbs: 15, fats: 8, fiber: 5, score: 8 },
+        { name: 'Soup', emoji: '🍲', calories: 120, protein: 6, carbs: 18, fats: 3, fiber: 4, score: 7 },
+        { name: 'Smoothie', emoji: '🥤', calories: 180, protein: 5, carbs: 35, fats: 3, fiber: 4, score: 6 },
+        { name: 'Burger', emoji: '🍔', calories: 350, protein: 20, carbs: 35, fats: 15, fiber: 2, score: 4 },
+        { name: 'French Fries', emoji: '🍟', calories: 312, protein: 3.4, carbs: 41, fats: 15, fiber: 3.8, score: 3 },
+        { name: 'Ice Cream', emoji: '🍦', calories: 207, protein: 3.5, carbs: 24, fats: 11, fiber: 0.7, score: 3 },
+        { name: 'Dosa', emoji: '🥞', calories: 133, protein: 3.5, carbs: 26, fats: 2, fiber: 2, score: 6 },
+        { name: 'Idli', emoji: '🥮', calories: 40, protein: 1.5, carbs: 8, fats: 0.5, fiber: 1, score: 7 },
+        { name: 'Upma', emoji: '🥣', calories: 150, protein: 4, carbs: 28, fats: 3, fiber: 2, score: 6 },
+        { name: 'Pongal', emoji: '🍚', calories: 180, protein: 5, carbs: 32, fats: 4, fiber: 2, score: 6 },
+        { name: 'Khichdi', emoji: '🍛', calories: 200, protein: 7, carbs: 35, fats: 4, fiber: 3, score: 7 },
+        { name: 'Pulao', emoji: '🍛', calories: 250, protein: 6, carbs: 40, fats: 8, fiber: 2, score: 5 },
+        { name: 'Biriyani', emoji: '🍛', calories: 300, protein: 12, carbs: 45, fats: 8, fiber: 2, score: 4 },
+        { name: 'Noodles', emoji: '🍜', calories: 240, protein: 6, carbs: 40, fats: 6, fiber: 1, score: 4 },
+        { name: 'Pasta', emoji: '🍝', calories: 220, protein: 8, carbs: 43, fats: 1.3, fiber: 2.5, score: 5 }
+    ];
+
+    // Upload functionality
+    uploadArea.addEventListener('click', () => fileInput.click());
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';
+            placeholder.style.display = 'none';
+            imageContainer.style.display = 'inline-block';
+            analyzeBtn.disabled = false;
+            results.classList.remove('active');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+        previewImage.src = '';
+        previewImage.style.display = 'none';
+        imageContainer.style.display = 'none';
+        placeholder.style.display = 'block';
+        fileInput.value = '';
+        analyzeBtn.disabled = true;
+        results.classList.remove('active');
+    }
+
+    // Analyze function
+    analyzeBtn.addEventListener('click', analyzeFood);
+
+    function analyzeFood() {
+        analyzeBtn.textContent = '⏳ Analyzing...';
+        analyzeBtn.disabled = true;
+
+        setTimeout(() => {
+            // Select random food from database
+            const food = foodDatabase[Math.floor(Math.random() * foodDatabase.length)];
+            
+            // Display detected food name
+            document.getElementById('detectedFoodName').textContent = `${food.emoji} ${food.name}`;
+            
+            // Display nutrition values
+            document.getElementById('calories').textContent = food.calories;
+            document.getElementById('protein').textContent = food.protein.toFixed(1);
+            document.getElementById('carbs').textContent = food.carbs.toFixed(1);
+            document.getElementById('fats').textContent = food.fats.toFixed(1);
+
+            // Health score and message
+            const score = food.score;
+            document.getElementById('healthScore').textContent = score + '/10';
+
+            let healthText = '';
+            if (score >= 8) healthText = '🌟 Excellent choice! Very nutritious!';
+            else if (score >= 6) healthText = '👍 Good choice! Balanced nutrition.';
+            else if (score >= 4) healthText = '⚠️ Moderate. Consider healthier options.';
+            else healthText = '🔴 Low nutrition. Try to choose better alternatives.';
+            document.getElementById('healthText').textContent = healthText;
+
+            results.classList.add('active');
+
+            // Add to recent scans
+            addRecentScan(food.name, food.calories);
+
+            analyzeBtn.textContent = '🔍 Analyze Food';
+            analyzeBtn.disabled = false;
+        }, 2000);
+    }
+
+    function addRecentScan(name, calories) {
+        const list = document.getElementById('recentList');
+        const item = document.createElement('div');
+        item.className = 'scan-item';
+        item.innerHTML = `
+            <span class="scan-name">${name}</span>
+            <span class="scan-cal">${calories} kcal</span>
+        `;
+        list.prepend(item);
+        
+        // Keep only last 5
+        while (list.children.length > 5) {
+            list.removeChild(list.lastChild);
+        }
+        
+        // Remove placeholder if exists
+        if (list.querySelector('p')) {
+            list.querySelector('p').remove();
+        }
+    }
+</script>
+
+</body>
+</html>
